@@ -1,0 +1,6 @@
+{
+  "name": "Mandap Vala",
+  "description": "Complete Mandap & Event Decoration business management app with billing, gallery, customer management, PDF invoices, and customer selection links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

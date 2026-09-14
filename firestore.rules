@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Allow business owner to manage their own business profile
+    match /businesses/{businessId} {
+      allow read: if true; // Publicly readable for customer portal branding
+      allow write: if request.auth != null && (request.auth.uid == businessId || resource.data.ownerEmail == request.auth.token.email);
+    }
+
+    // Customers collection under business
+    match /customers/{customerId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Gallery items collection
+    match /gallery_items/{itemId} {
+      allow read: if true; // Customers can view gallery items for selection link
+      allow write: if request.auth != null; // Admin can add, update, delete
+    }
+
+    // Bills collection
+    match /bills/{billId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Notifications collection (Customer selections push new notifications)
+    match /notifications/{notificationId} {
+      allow create: if true; // Customer selection portal can submit notification
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Settings collection
+    match /settings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
