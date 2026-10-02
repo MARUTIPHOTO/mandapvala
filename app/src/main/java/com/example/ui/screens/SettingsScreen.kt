@@ -101,6 +101,7 @@ fun SettingsScreen(
     var accountNumber by remember(currentBiz.bankAccount) { mutableStateOf(currentBiz.bankAccount) }
     var ifscCode by remember(currentBiz.bankIfsc) { mutableStateOf(currentBiz.bankIfsc) }
     var terms by remember(currentBiz.termsAndConditions) { mutableStateOf(currentBiz.termsAndConditions) }
+    var catalogUrl by remember(currentBiz.catalogUrl) { mutableStateOf(currentBiz.catalogUrl) }
 
     var showNewBusinessDialog by remember { mutableStateOf(false) }
     var showSwitchBusinessDialog by remember { mutableStateOf(false) }
@@ -410,6 +411,16 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
+                        OutlinedTextField(
+                            value = catalogUrl,
+                            onValueChange = { catalogUrl = it },
+                            label = { Text("Customer Catalog Website URL") },
+                            placeholder = { Text("e.g. https://mandapvala.netlify.app or https://mandapvala.in") },
+                            supportingText = { Text("This URL is shared with customers on WhatsApp so they can browse mandap photos on mobile.") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Button(
@@ -427,7 +438,8 @@ fun SettingsScreen(
                                     bankName = bankName.trim(),
                                     bankAccount = accountNumber.trim(),
                                     bankIfsc = ifscCode.trim(),
-                                    termsAndConditions = terms.trim()
+                                    termsAndConditions = terms.trim(),
+                                    catalogUrl = catalogUrl.trim().ifEmpty { "https://mandapvala.in" }
                                 )
                                 viewModel.updateBusinessProfile(updated)
                                 Toast.makeText(context, "Business Profile updated successfully!", Toast.LENGTH_SHORT).show()

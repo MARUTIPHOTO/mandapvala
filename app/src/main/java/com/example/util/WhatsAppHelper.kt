@@ -51,9 +51,11 @@ object WhatsAppHelper {
         customerName: String,
         customerMobile: String,
         business: BusinessProfile,
-        customerId: Long
+        customerId: Long,
+        customUrl: String? = null
     ) {
-        val liveLink = "https://ais-pre-phbombsc476himodsizzja-294621985383.asia-southeast1.run.app/view/catalog/"
+        val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
+        val liveLink = customUrl ?: "https://mandapvala.in/catalog.html?phone=$bizPhone&biz=${business.id}&cust=$customerId"
         val message = """
             🙏 *Namaste $customerName ji!*
             
@@ -63,8 +65,6 @@ object WhatsAppHelper {
             
             👉 *Open Online Catalog:*
             $liveLink
-            
-            🌐 *Official Website:* https://mandapvala.in
             
             Browse photos, select your preferred setups, and send choices directly on WhatsApp.
             

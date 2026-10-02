@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         Bill::class,
         AppNotification::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MandapDatabase : RoomDatabase() {
@@ -40,6 +40,7 @@ abstract class MandapDatabase : RoomDatabase() {
                     MandapDatabase::class.java,
                     "mandap_vala_database"
                 )
+                    .fallbackToDestructiveMigration()
                     .addCallback(DatabaseSeedCallback())
                     .build()
                 INSTANCE = instance

@@ -342,7 +342,7 @@ fun GalleryScreen(
                     }
                     IconButton(
                         onClick = {
-                            val liveUrl = "https://ais-pre-phbombsc476himodsizzja-294621985383.asia-southeast1.run.app/view/catalog/"
+                            val liveUrl = "https://mandapvala.in/catalog.html"
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val clip = ClipData.newPlainText("Catalog Link", liveUrl)
                             clipboard.setPrimaryClip(clip)
@@ -1248,8 +1248,9 @@ fun CustomerLinkShareDialog(
     val customerName = if (useManualCustomer) manualName.ifBlank { "Valued Customer" } else (selectedCustomer?.name ?: "Valued Customer")
     val customerPhone = if (useManualCustomer) manualPhone else (selectedCustomer?.mobile ?: "")
     val customerId = if (useManualCustomer) 0L else (selectedCustomer?.id ?: 0L)
+    val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
 
-    val catalogLink = "https://ais-pre-phbombsc476himodsizzja-294621985383.asia-southeast1.run.app/view/catalog/?biz=${business.id}&cust=$customerId"
+    val catalogLink = "https://mandapvala.in/catalog.html?phone=$bizPhone&biz=${business.id}&cust=$customerId"
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1419,7 +1420,8 @@ fun CustomerLinkShareDialog(
                         customerName = customerName,
                         customerMobile = customerPhone,
                         business = business,
-                        customerId = customerId
+                        customerId = customerId,
+                        customUrl = catalogLink
                     )
                     onDismiss()
                 },

@@ -110,16 +110,16 @@
 
   <script>
     const items = [
-      { id: 1, title: 'Royal Rajwada Mandap', category: 'Mandap', price: 35000, desc: 'Grand traditional carved pillars with velvet drapes and royal lighting', img: '/images/hero.jpg' },
-      { id: 2, title: 'Golden Temple Theme Mandap', category: 'Mandap', price: 42000, desc: 'Auspicious dome setup with fresh marigold hangings and warm focus spots', img: '/images/hero.jpg' },
-      { id: 3, title: 'Pastel Floral Wedding Stage', category: 'Stage', price: 25000, desc: 'Modern pastel backdrop with LED mirror panels and exotic rose arches', img: '/images/hero.jpg' },
-      { id: 4, title: 'Grand Maharaja Reception Stage', category: 'Stage', price: 30000, desc: 'Luxury golden backdrop with chandelier lighting and royal carpet setup', img: '/images/hero.jpg' },
-      { id: 5, title: 'Fresh Rose & Marigold Floral Chavar', category: 'Flower', price: 18000, desc: '100% natural fragrant flowers for vidhi mandap and entrance arches', img: '/images/hero.jpg' },
-      { id: 6, title: 'Exotic Orchid & Carnation Wall', category: 'Flower', price: 22000, desc: 'Premium imported floral wall for photo booths and couple selfies', img: '/images/hero.jpg' },
-      { id: 7, title: 'Royal White-Gold Maharaja Sofa', category: 'Sofa', price: 8000, desc: 'Pair of handcrafted high-back velvet thrones for bride & groom', img: '/images/hero.jpg' },
-      { id: 8, title: 'Antique Wooden Carved Couple Chairs', category: 'Sofa', price: 6500, desc: 'Traditional polished teak chairs with embroidered silk cushions', img: '/images/hero.jpg' },
-      { id: 9, title: 'Haldi & Mehendi Yellow Canopy', category: 'Lighting', price: 15000, desc: 'Bright yellow marigold curtains with jhula and fun photo props', img: '/images/hero.jpg' },
-      { id: 10, title: 'Fairy Light Tunnel Entrance Gate', category: 'Entry', price: 14000, desc: '30-foot walk-through starry light tunnel with cold pyro entry setup', img: '/images/hero.jpg' }
+      { id: 1, title: 'Royal Rajwada Mandap', category: 'Mandap', price: 35000, desc: 'Grand traditional carved pillars with velvet drapes and royal lighting', img: 'images/hero.jpg' },
+      { id: 2, title: 'Golden Temple Theme Mandap', category: 'Mandap', price: 42000, desc: 'Auspicious dome setup with fresh marigold hangings and warm focus spots', img: 'images/hero.jpg' },
+      { id: 3, title: 'Pastel Floral Wedding Stage', category: 'Stage', price: 25000, desc: 'Modern pastel backdrop with LED mirror panels and exotic rose arches', img: 'images/hero.jpg' },
+      { id: 4, title: 'Grand Maharaja Reception Stage', category: 'Stage', price: 30000, desc: 'Luxury golden backdrop with chandelier lighting and royal carpet setup', img: 'images/hero.jpg' },
+      { id: 5, title: 'Fresh Rose & Marigold Floral Chavar', category: 'Flower', price: 18000, desc: '100% natural fragrant flowers for vidhi mandap and entrance arches', img: 'images/hero.jpg' },
+      { id: 6, title: 'Exotic Orchid & Carnation Wall', category: 'Flower', price: 22000, desc: 'Premium imported floral wall for photo booths and couple selfies', img: 'images/hero.jpg' },
+      { id: 7, title: 'Royal White-Gold Maharaja Sofa', category: 'Sofa', price: 8000, desc: 'Pair of handcrafted high-back velvet thrones for bride & groom', img: 'images/hero.jpg' },
+      { id: 8, title: 'Antique Wooden Carved Couple Chairs', category: 'Sofa', price: 6500, desc: 'Traditional polished teak chairs with embroidered silk cushions', img: 'images/hero.jpg' },
+      { id: 9, title: 'Haldi & Mehendi Yellow Canopy', category: 'Lighting', price: 15000, desc: 'Bright yellow marigold curtains with jhula and fun photo props', img: 'images/hero.jpg' },
+      { id: 10, title: 'Fairy Light Tunnel Entrance Gate', category: 'Entry', price: 14000, desc: '30-foot walk-through starry light tunnel with cold pyro entry setup', img: 'images/hero.jpg' }
     ];
 
     let currentCategory = 'All';
@@ -205,6 +205,11 @@
         alert('કૃપા કરીને પહેલા તમને ગમતી કોઈ ડેકોરેશન આઇટમ પસંદ કરો!');
         return;
       }
+      const urlParams = new URLSearchParams(window.location.search);
+      let phone = urlParams.get('phone') || urlParams.get('mobile') || '';
+      phone = phone.replace(/[^0-9]/g, '');
+      if (phone.length === 10) phone = '91' + phone;
+
       const selected = items.filter(it => selectedItemIds.has(it.id));
       let text = "🙏 *નમસ્તે Mandap Vala!*\nહું mandapvala.in કેટલોગ પરથી નીચેની ડેકોરેશન આઇટમ પસંદ કરી રહ્યો છું:\n\n";
       selected.forEach((it, idx) => {
@@ -213,7 +218,8 @@
       text += "\nકૃપા કરીને આ ડિઝાઇન માટેનું બુકિંગ અને અવેલેબિલિટી કન્ફર્મ કરો. આભાર!";
       
       const encoded = encodeURIComponent(text);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+      const waUrl = phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+      window.open(waUrl, '_blank');
     }
 
     renderGallery();
