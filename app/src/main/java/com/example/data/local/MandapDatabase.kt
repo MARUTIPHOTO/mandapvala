@@ -75,6 +75,7 @@ abstract class MandapDatabase : RoomDatabase() {
                 bankAccount = "30291827364",
                 bankIfsc = "SBIN0001234",
                 upiId = "radhemandap@upi",
+                catalogUrl = "https://marutiphoto.github.io/mandapvala/",
                 isActive = true
             )
             dao.insertOrUpdateBusiness(defaultBiz)

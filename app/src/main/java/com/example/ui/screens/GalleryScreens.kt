@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -301,7 +302,8 @@ fun GalleryScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .clickable { onOpenCustomerPortal(0L, "Customer") },
                 color = AmberGoldSecondary.copy(alpha = 0.15f),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, AmberGoldSecondary.copy(alpha = 0.6f))
@@ -318,7 +320,7 @@ fun GalleryScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
-                            Icons.Default.Link,
+                            Icons.Default.ShoppingCart,
                             contentDescription = "Selection Link",
                             tint = RoyalMaroonPrimary,
                             modifier = Modifier.size(20.dp)
@@ -326,31 +328,25 @@ fun GalleryScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
-                                text = "Customer Selection Portal",
+                                text = "📱 Customer Selection Portal (ઇન-એપ ફોર્મ)",
                                 fontSize = 11.sp,
                                 color = Color(0xFF78350F),
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "https://mandapvala.in/view/catalog",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
+                                text = "ટચ કરીને ગ્રાહક માટે કેટલોગ ખોલો અને ઓર્ડર લો",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
                                 color = RoyalMaroonPrimary,
                                 maxLines = 1
                             )
                         }
                     }
                     IconButton(
-                        onClick = {
-                            val liveUrl = "https://mandapvala.in/catalog.html"
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("Catalog Link", liveUrl)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "Catalog Link Copied!", Toast.LENGTH_SHORT).show()
-                        },
+                        onClick = { onOpenCustomerPortal(0L, "Customer") },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy Link", tint = RoyalMaroonPrimary)
+                        Icon(Icons.Default.OpenInNew, contentDescription = "Open In App", tint = RoyalMaroonPrimary)
                     }
                     IconButton(
                         onClick = { showCustomerLinkDialog = true },
@@ -1250,7 +1246,16 @@ fun CustomerLinkShareDialog(
     val customerId = if (useManualCustomer) 0L else (selectedCustomer?.id ?: 0L)
     val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
 
-    val catalogLink = "https://mandapvala.in/catalog.html?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+    val baseCatalogUrl = if (business.catalogUrl.isNotBlank() && !business.catalogUrl.contains("mandapvala.in") && !business.catalogUrl.contains("web.app")) {
+        business.catalogUrl.trim()
+    } else {
+        "https://marutiphoto.github.io/mandapvala/"
+    }
+    val catalogLink = if (baseCatalogUrl.contains("?")) {
+        "$baseCatalogUrl&phone=$bizPhone&biz=${business.id}&cust=$customerId"
+    } else {
+        "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1378,6 +1383,20 @@ fun CustomerLinkShareDialog(
                 }
 
                 // Action Buttons
+                Button(
+                    onClick = {
+                        onDismiss()
+                        onOpenPortal(customerId, customerName)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("📱 એપમાં કસ્ટમર પોર્ટલ ખોલો (In-App)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1400,6 +1419,7 @@ fun CustomerLinkShareDialog(
                     // Preview Customer View in app
                     OutlinedButton(
                         onClick = {
+                            onDismiss()
                             onOpenPortal(customerId, customerName)
                         },
                         modifier = Modifier.weight(1f),

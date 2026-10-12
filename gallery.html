@@ -96,11 +96,75 @@
   <div class="selection-bar" id="selectionBar">
     <div class="selection-info">
       <span class="selection-count" id="selectedCountText">૦ આઇટમ પસંદ કરી</span>
-      <span class="selection-sub">પસંદગી પૂર્ણ કરીને WhatsApp પર ઓર્ડર મોકલો</span>
+      <span class="selection-sub" id="selectedAmountText">કુલ: ₹૦</span>
     </div>
-    <a href="#" class="btn-whatsapp" id="whatsappOrderBtn" onclick="sendOrder()">
-      <span>💬 WhatsApp પર મોકલો</span>
-    </a>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-whatsapp" style="background:#5B0E1B;" onclick="openOrderModal()">
+        <span>📋 ઓર્ડર સબમિટ કરો</span>
+      </button>
+      <button class="btn-whatsapp" onclick="sendWhatsAppOnly()">
+        <span>💬 WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Order Submission Modal -->
+  <div class="modal" id="orderModal">
+    <div style="background:white; border-radius:16px; padding:24px; max-width:440px; width:92%; box-shadow:0 10px 30px rgba(0,0,0,0.3); text-align:left;">
+      <h3 style="font-size:18px; font-weight:800; color:#5B0E1B; margin-bottom:8px;">🎉 પસંદ કરેલી ડિઝાઇન સબમિટ કરો</h3>
+      <p style="font-size:12px; color:#6B7280; margin-bottom:16px;">તમારી પસંદગી સીધી Mandap Vala એપના બિલ સેક્શનમાં જમા થઈ જશે.</p>
+      
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">ગ્રાહકનું નામ *</label>
+        <input type="text" id="custNameInput" placeholder="ઉદા. રમેશભાઈ પટેલ" style="width:100%; padding:10px 12px; border:1.5px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none;">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">મોબાઇલ નંબર *</label>
+        <input type="tel" id="custPhoneInput" placeholder="ઉદા. 9876543210" style="width:100%; padding:10px 12px; border:1.5px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none;">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">પ્રસંગની તારીખ</label>
+        <input type="date" id="custDateInput" style="width:100%; padding:10px 12px; border:1.5px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none;">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">ખાસ નોંધ / Requirement</label>
+        <textarea id="custNotesInput" rows="2" placeholder="ઉદા. ૨૦૦ માણસનો મંડપ, સાંજનો સમય..." style="width:100%; padding:8px 12px; border:1.5px solid #D1D5DB; border-radius:8px; font-size:13px; outline:none; resize:none;"></textarea>
+      </div>
+
+      <div style="background:#FDF2F4; border:1px solid #FBCFE8; border-radius:10px; padding:10px 12px; margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:#4B5563;">
+          <span id="modalSummaryCount">૦ આઇટમ્સ</span>
+          <span id="modalSummaryTotal" style="color:#5B0E1B; font-weight:800;">₹૦</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeOrderModal()" style="flex:1; padding:10px; border:1px solid #D1D5DB; background:#F3F4F6; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer;">કેન્સલ</button>
+        <button id="btnSubmitOrder" onclick="submitOrderToFirestore()" style="flex:2; padding:10px; border:none; background:#5B0E1B; color:white; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer;">
+          કન્ફર્મ ઓર્ડર સબમિટ કરો
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal" id="successModal">
+    <div style="background:white; border-radius:16px; padding:24px; max-width:400px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+      <div style="font-size:48px; margin-bottom:10px;">🎉</div>
+      <h3 style="font-size:18px; font-weight:800; color:#065F46; margin-bottom:6px;">ઓર્ડર સફળતાપૂર્વક જમા થયો!</h3>
+      <p style="font-size:13px; color:#4B5563; margin-bottom:16px;">તમારી પસંદ કરેલી ડિઝાઇન અને બિલની વિગતો Mandap Vala એપના <b>CustomerOrders</b> સેક્શનમાં Real-time પહોંચી ગઈ છે.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button onclick="sendWhatsAppSummary()" class="btn-whatsapp" style="justify-content:center;">
+          <span>💬 WhatsApp પર પણ વિગત મોકલો</span>
+        </button>
+        <button onclick="closeSuccessModal()" style="padding:10px; border:1px solid #D1D5DB; background:#F9FAFB; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer;">
+          પૂર્ણ (Done)
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="modal" id="imageModal" onclick="closeModal()">
@@ -108,7 +172,29 @@
     <img class="modal-content" id="modalImg">
   </div>
 
+  <!-- Firebase App & Firestore SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmfNujZ-RM9Uo4n58YFhnOrkcJvN_JPOg",
+      authDomain: "mandapvala-ead1b.firebaseapp.com",
+      projectId: "mandapvala-ead1b",
+      storageBucket: "mandapvala-ead1b.firebasestorage.app",
+      messagingSenderId: "280403303951",
+      appId: "1:280403303951:android:e73a8f9d9d3bbc1e0c8d7a"
+    };
+    
+    let db = null;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+    } catch(err) {
+      console.warn("Firebase initialization warning:", err);
+    }
     const items = [
       { id: 1, title: 'Royal Rajwada Mandap', category: 'Mandap', price: 35000, desc: 'Grand traditional carved pillars with velvet drapes and royal lighting', img: 'images/hero.jpg' },
       { id: 2, title: 'Golden Temple Theme Mandap', category: 'Mandap', price: 42000, desc: 'Auspicious dome setup with fresh marigold hangings and warm focus spots', img: 'images/hero.jpg' },
@@ -174,9 +260,17 @@
     }
 
     function updateSelectionBar() {
-      const count = selectedItemIds.size;
-      const bar = document.getElementById('selectedCountText');
-      bar.textContent = count > 0 ? `${count} ડેકોરેશન આઇટમ પસંદ કરી` : '૦ આઇટમ પસંદ કરી';
+      const selected = items.filter(it => selectedItemIds.has(it.id));
+      const count = selected.length;
+      const total = selected.reduce((sum, it) => sum + it.price, 0);
+      const countEl = document.getElementById('selectedCountText');
+      const amtEl = document.getElementById('selectedAmountText');
+      if (countEl) {
+        countEl.textContent = count > 0 ? `${count} ડેકોરેશન આઇટમ પસંદ કરી` : '૦ આઇટમ પસંદ કરી';
+      }
+      if (amtEl) {
+        amtEl.textContent = count > 0 ? `કુલ અંદાજિત: ₹${total.toLocaleString('en-IN')}` : 'કુલ: ₹૦';
+      }
     }
 
     function setCategory(cat) {
@@ -200,26 +294,142 @@
       document.getElementById('imageModal').classList.remove('show');
     }
 
-    function sendOrder() {
+    let lastSubmittedData = null;
+
+    function openOrderModal() {
       if (selectedItemIds.size === 0) {
-        alert('કૃપા કરીને પહેલા તમને ગમતી કોઈ ડેકોરેશન આઇટમ પસંદ કરો!');
+        alert('કૃપા કરીને પહેલા તમને ગમતી કોઈ ડેકોરેશન ડિઝાઇન પસંદ કરો!');
         return;
       }
+      const selected = items.filter(it => selectedItemIds.has(it.id));
+      const total = selected.reduce((sum, it) => sum + it.price, 0);
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlName = urlParams.get('name') || urlParams.get('customer') || '';
+      const urlPhone = urlParams.get('phone') || urlParams.get('mobile') || '';
+      const urlDate = urlParams.get('date') || '';
+
+      if (urlName && !document.getElementById('custNameInput').value) {
+        document.getElementById('custNameInput').value = urlName;
+      }
+      if (urlPhone && !document.getElementById('custPhoneInput').value) {
+        document.getElementById('custPhoneInput').value = urlPhone;
+      }
+      if (urlDate && !document.getElementById('custDateInput').value) {
+        document.getElementById('custDateInput').value = urlDate;
+      }
+
+      document.getElementById('modalSummaryCount').textContent = `${selected.length} આઇટમ્સ સિલેક્ટ કરી`;
+      document.getElementById('modalSummaryTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+      document.getElementById('orderModal').classList.add('show');
+    }
+
+    function closeOrderModal() {
+      document.getElementById('orderModal').classList.remove('show');
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').classList.remove('show');
+    }
+
+    async function submitOrderToFirestore() {
+      const name = document.getElementById('custNameInput').value.trim();
+      const phone = document.getElementById('custPhoneInput').value.trim();
+      const date = document.getElementById('custDateInput').value.trim();
+      const notes = document.getElementById('custNotesInput').value.trim();
+
+      if (!name) {
+        alert('કૃપા કરીને તમારું પૂરું નામ લખો!');
+        document.getElementById('custNameInput').focus();
+        return;
+      }
+      if (!phone || phone.length < 10) {
+        alert('કૃપા કરીને સાચો ૧૦ અંકનો મોબાઇલ નંબર લખો!');
+        document.getElementById('custPhoneInput').focus();
+        return;
+      }
+
+      const selected = items.filter(it => selectedItemIds.has(it.id));
+      const total = selected.reduce((sum, it) => sum + it.price, 0);
+
+      const submitBtn = document.getElementById('btnSubmitOrder');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "સબમિટ થઈ રહ્યું છે...";
+
+      const orderPayload = {
+        customerName: name,
+        customerMobile: phone,
+        eventDate: date || new Date().toISOString().split('T')[0],
+        totalAmount: total,
+        itemsCount: selected.length,
+        status: "NEW",
+        timestamp: Date.now(),
+        notes: notes || "Online Web Catalog Selection",
+        items: selected.map(it => ({
+          id: it.id,
+          title: it.title,
+          category: it.category,
+          price: it.price,
+          imageUrl: it.img,
+          quantity: 1
+        }))
+      };
+
+      try {
+        if (db) {
+          const docRef = await db.collection("CustomerOrders").add({
+            ...orderPayload,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          orderPayload.id = docRef.id;
+        } else {
+          console.warn("Firestore db not available, storing locally");
+        }
+        
+        lastSubmittedData = orderPayload;
+        closeOrderModal();
+        document.getElementById('successModal').classList.add('show');
+        
+        // Reset selections
+        selectedItemIds.clear();
+        updateSelectionBar();
+        renderGallery();
+      } catch (err) {
+        console.error("Error saving order:", err);
+        alert("ઓર્ડર સબમિટ કરવામાં મુશ્કેલી આવી: " + (err.message || err));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "કન્ફર્મ ઓર્ડર સબમિટ કરો";
+      }
+    }
+
+    function sendWhatsAppSummary() {
+      if (!lastSubmittedData) return;
+      const data = lastSubmittedData;
+      let text = `🙏 *નમસ્તે Mandap Vala!*\nહું mandapvala.in કેટલોગ પરથી નીચે મુજબની ડિઝાઇન બુક કરી રહ્યો છું:\n\n`;
+      text += `👤 *ગ્રાહક:* ${data.customerName}\n`;
+      text += `📞 *મોબાઇલ:* ${data.customerMobile}\n`;
+      if (data.eventDate) text += `📅 *તારીખ:* ${data.eventDate}\n\n`;
+      text += `*પસંદ કરેલી ડેકોરેશન આઇટમ્સ:*\n`;
+      data.items.forEach((it, idx) => {
+        text += `${idx + 1}. ${it.title} (${it.category}) - ₹${it.price.toLocaleString('en-IN')}\n`;
+      });
+      text += `\n💰 *કુલ અંદાજિત રકમ:* ₹${data.totalAmount.toLocaleString('en-IN')}\n`;
+      if (data.notes) text += `📝 *નોંધ:* ${data.notes}\n`;
+      text += `\nકૃપા કરીને આ બુકિંગ કન્ફર્મ કરશો. આભાર!`;
+
+      const encoded = encodeURIComponent(text);
       const urlParams = new URLSearchParams(window.location.search);
       let phone = urlParams.get('phone') || urlParams.get('mobile') || '';
       phone = phone.replace(/[^0-9]/g, '');
       if (phone.length === 10) phone = '91' + phone;
 
-      const selected = items.filter(it => selectedItemIds.has(it.id));
-      let text = "🙏 *નમસ્તે Mandap Vala!*\nહું mandapvala.in કેટલોગ પરથી નીચેની ડેકોરેશન આઇટમ પસંદ કરી રહ્યો છું:\n\n";
-      selected.forEach((it, idx) => {
-        text += `${idx + 1}. *${it.title}* (${it.category}) - ₹${it.price.toLocaleString('en-IN')}\n`;
-      });
-      text += "\nકૃપા કરીને આ ડિઝાઇન માટેનું બુકિંગ અને અવેલેબિલિટી કન્ફર્મ કરો. આભાર!";
-      
-      const encoded = encodeURIComponent(text);
       const waUrl = phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
       window.open(waUrl, '_blank');
+    }
+
+    function sendWhatsAppOnly() {
+      openOrderModal();
     }
 
     renderGallery();

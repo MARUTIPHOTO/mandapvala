@@ -55,7 +55,16 @@ object WhatsAppHelper {
         customUrl: String? = null
     ) {
         val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
-        val liveLink = customUrl ?: "https://mandapvala.in/catalog.html?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+        val base = if (business.catalogUrl.isNotBlank() && !business.catalogUrl.contains("mandapvala.in") && !business.catalogUrl.contains("web.app")) {
+            business.catalogUrl.trim()
+        } else {
+            "https://marutiphoto.github.io/mandapvala/"
+        }
+        val liveLink = customUrl ?: if (base.contains("?")) {
+            "$base&phone=$bizPhone&biz=${business.id}&cust=$customerId"
+        } else {
+            "$base?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+        }
         val message = """
             🙏 *Namaste $customerName ji!*
             

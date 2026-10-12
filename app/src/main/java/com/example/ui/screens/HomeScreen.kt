@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Description
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -56,6 +58,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -91,6 +95,8 @@ fun HomeScreen(
     onNavigateToGallery: () -> Unit,
     onSelectCustomerForPortal: (Long, String) -> Unit,
     onEditBill: (Bill) -> Unit,
+    onNavigateToSubscription: () -> Unit = {},
+    onNavigateToAuth: () -> Unit = {},
     paddingValues: PaddingValues
 ) {
     val context = LocalContext.current
@@ -98,7 +104,11 @@ fun HomeScreen(
     val bills by viewModel.bills.collectAsStateWithLifecycle()
     val customers by viewModel.customers.collectAsStateWithLifecycle()
     val galleryItems by viewModel.galleryItems.collectAsStateWithLifecycle()
+    val customerOrders by viewModel.customerOrders.collectAsStateWithLifecycle()
     val unreadCount by viewModel.unreadNotificationCount.collectAsStateWithLifecycle()
+    val billingState by viewModel.billingState.collectAsStateWithLifecycle()
+
+    val newOrders = customerOrders.filter { it.status == "NEW" }
 
     val currentBiz = business ?: BusinessProfile()
 
@@ -148,6 +158,55 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .clickable { onNavigateToSubscription() }
+                            .testTag("home_trial_badge_button"),
+                        color = AmberGoldSecondary,
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = null,
+                                tint = Color(0xFF422B00),
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = if (billingState.isSubscribed) "PRO" else "${billingState.trialDaysRemaining}d Trial",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF422B00)
+                            )
+                        }
+                    }
+                    val isGoogleSignedIn = Firebase.auth.currentUser != null
+                    if (!isGoogleSignedIn) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .clickable { onNavigateToAuth() }
+                                .testTag("home_signin_chip"),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("G", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("સાઇન ઇન", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
                     IconButton(
                         onClick = onNavigateToNotifications,
                         modifier = Modifier.testTag("bell_notification_button")
@@ -186,6 +245,64 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
         ) {
+            // Google Sign-In Banner if user is not signed in
+            item {
+                val isGoogleSignedIn = Firebase.auth.currentUser != null
+                if (!isGoogleSignedIn) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToAuth() }
+                            .testTag("home_google_signin_banner"),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier.size(38.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "G",
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Google વડે 1-ક્લિક સાઇન ઇન",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "ડેટા ક્લાઉડ સુરક્ષિત રાખો & 90 દિવસ ફ્રી ટ્રાયલ મેળવો",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                            Button(
+                                onClick = onNavigateToAuth,
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("સાઇન ઇન", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Hero Banner Card
             item {
                 Card(
@@ -240,6 +357,137 @@ fun HomeScreen(
                                 color = Color(0xFFFDE68A),
                                 style = MaterialTheme.typography.bodySmall
                             )
+                        }
+                    }
+                }
+            }
+
+            // Google Play 90-Day Free Trial Banner
+            item {
+                ElevatedCard(
+                    onClick = onNavigateToSubscription,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = if (billingState.isSubscribed) {
+                            RoyalMaroonPrimary.copy(alpha = 0.08f)
+                        } else {
+                            AmberGoldSecondary.copy(alpha = 0.14f)
+                        }
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("home_trial_card_banner")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (billingState.isSubscribed) SuccessGreen else AmberGoldSecondary,
+                                modifier = Modifier.size(42.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (billingState.isSubscribed) Icons.Default.CheckCircle else Icons.Default.Bolt,
+                                        contentDescription = null,
+                                        tint = if (billingState.isSubscribed) Color.White else Color(0xFF422B00),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (billingState.isSubscribed) "Google Play સબ્સ્ક્રિપ્શન એક્ટિવ" else "૯૦ દિવસનો ફ્રી ટ્રાયલ ચાલુ છે",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                                Text(
+                                    text = if (billingState.isSubscribed) {
+                                        "તમામ પ્રો ફીચર્સ અનલિમિટેડ એક્ટિવ છે"
+                                    } else {
+                                        "${billingState.trialDaysRemaining} દિવસ બાકી • આજે ₹0 • વિગતો જુઓ"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Open Subscription",
+                            tint = RoyalMaroonPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            // Live Incoming Orders Alert Banner
+            if (newOrders.isNotEmpty()) {
+                item {
+                    ElevatedCard(
+                        onClick = onNavigateToBills,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Bolt,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "⚡ ${newOrders.size} નવો ગ્રાહક ઓર્ડર મળ્યો!",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Text(
+                                        text = "${newOrders.first().customerName} • ${newOrders.first().itemsCount} આઇટમ્સ • ₹%,.0f".format(newOrders.first().totalAmount),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                                    )
+                                }
+                            }
+                            Button(
+                                onClick = onNavigateToBills,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("બિલ બનાવો", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
                         }
                     }
                 }
@@ -341,17 +589,34 @@ fun HomeScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onNavigateToGallery,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("home_gallery_link_button"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AmberGoldSecondary, contentColor = Color.Black)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Collections, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("🎪 Gallery & Customer Selection Link", fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = onNavigateToGallery,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("home_gallery_link_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AmberGoldSecondary, contentColor = Color.Black)
+                    ) {
+                        Icon(Icons.Default.Collections, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("🎪 ગેલેરી કેટલોગ", fontWeight = FontWeight.Bold, maxLines = 1)
+                    }
+                    Button(
+                        onClick = { onSelectCustomerForPortal(0L, "Customer") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("home_customer_portal_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("📱 કસ્ટમર પોર્ટલ", fontWeight = FontWeight.Bold, maxLines = 1)
+                    }
                 }
             }
 

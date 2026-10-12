@@ -21,10 +21,18 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.credentials.CredentialManager
+import com.example.auth.GoogleSignInManager
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -45,6 +53,9 @@ import com.example.ui.screens.GalleryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.NotificationScreen
 import com.example.ui.screens.SettingsScreen
+import com.example.ui.screens.SubscriptionScreen
+import com.example.ui.screens.SubscriptionRequiredScreen
+import com.example.ui.screens.AuthScreen
 import com.example.ui.theme.MandapValaTheme
 import com.example.ui.viewmodel.MandapViewModel
 import java.net.URLDecoder
@@ -77,6 +88,38 @@ fun MandapApp(viewModel: MandapViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val isAccessBlocked by viewModel.isAccessBlocked.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
+
+    // Silent auto sign-in attempt on app launch with Credential Manager
+    LaunchedEffect(Unit) {
+        if (Firebase.auth.currentUser == null) {
+            GoogleSignInManager.attemptAutoSignIn(
+                context = context,
+                credentialManager = credentialManager,
+                scope = coroutineScope,
+                onTokenReceived = { idToken ->
+                    viewModel.signInWithGoogle(idToken) { /* auto login success */ }
+                },
+                onNoCredential = { /* normal interactive fallback */ }
+            )
+        }
+    }
+
+    // Redirect to Subscription Required screen if trial has expired and user is not subscribed
+    LaunchedEffect(isAccessBlocked) {
+        if (isAccessBlocked) {
+            navController.navigate(Screen.SubscriptionRequired.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
     val tabs = listOf(
         NavTabItem("Home", Screen.Home.route, Icons.Default.Home, "bottom_nav_home"),
         NavTabItem("Gallery", Screen.Gallery.route, Icons.Default.Collections, "bottom_nav_gallery"),
@@ -85,7 +128,10 @@ fun MandapApp(viewModel: MandapViewModel) {
         NavTabItem("Settings", Screen.Settings.route, Icons.Default.Settings, "bottom_nav_settings")
     )
 
-    val showBottomBar = tabs.any { it.route == currentRoute }
+    val showBottomBar = tabs.any { it.route == currentRoute } && !isAccessBlocked && currentRoute != Screen.SubscriptionRequired.route && currentRoute != Screen.Auth.route
+
+    val isUserLoggedIn = Firebase.auth.currentUser != null || userProfile != null
+    val initialStartDestination = if (isUserLoggedIn) Screen.Home.route else Screen.Auth.route
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -126,7 +172,7 @@ fun MandapApp(viewModel: MandapViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route
+            startDestination = initialStartDestination
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(
@@ -153,6 +199,12 @@ fun MandapApp(viewModel: MandapViewModel) {
                     onEditBill = { bill: Bill ->
                         viewModel.editExistingBill(bill)
                         navController.navigate(Screen.CreateEditBill.route)
+                    },
+                    onNavigateToSubscription = {
+                        navController.navigate(Screen.Subscription.route)
+                    },
+                    onNavigateToAuth = {
+                        navController.navigate(Screen.Auth.route)
                     },
                     paddingValues = innerPadding
                 )
@@ -200,6 +252,12 @@ fun MandapApp(viewModel: MandapViewModel) {
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = viewModel,
+                    onNavigateToSubscription = {
+                        navController.navigate(Screen.Subscription.route)
+                    },
+                    onNavigateToAuth = {
+                        navController.navigate(Screen.Auth.route)
+                    },
                     paddingValues = innerPadding
                 )
             }
@@ -218,6 +276,9 @@ fun MandapApp(viewModel: MandapViewModel) {
                     navArgument("customerName") { type = NavType.StringType; defaultValue = "Customer" }
                 ),
                 deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/?phone={phone}&biz={biz}&cust={customerId}" },
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala?phone={phone}&biz={biz}&cust={customerId}" },
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/index.html?phone={phone}&biz={biz}&cust={customerId}" },
                     navDeepLink { uriPattern = "https://mandapvala.in/view/catalog?biz={biz}&cust={customerId}" },
                     navDeepLink { uriPattern = "http://mandapvala.in/view/catalog?biz={biz}&cust={customerId}" }
                 )
@@ -244,6 +305,41 @@ fun MandapApp(viewModel: MandapViewModel) {
                     onBack = { navController.popBackStack() },
                     onNavigateToBillDraft = {
                         navController.navigate(Screen.CreateEditBill.route)
+                    }
+                )
+            }
+
+            composable(Screen.Subscription.route) {
+                SubscriptionScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    paddingValues = innerPadding
+                )
+            }
+
+            composable(Screen.SubscriptionRequired.route) {
+                SubscriptionRequiredScreen(
+                    viewModel = viewModel,
+                    onSignOut = {
+                        navController.navigate(Screen.Auth.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.Auth.route) {
+                AuthScreen(
+                    viewModel = viewModel,
+                    onAuthSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

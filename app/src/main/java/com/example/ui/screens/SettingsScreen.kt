@@ -1,5 +1,9 @@
 package com.example.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,12 +27,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddBusiness
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -39,6 +46,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -76,12 +84,16 @@ import com.example.ui.viewmodel.MandapViewModel
 @Composable
 fun SettingsScreen(
     viewModel: MandapViewModel,
+    onNavigateToSubscription: () -> Unit = {},
+    onNavigateToAuth: () -> Unit = {},
     paddingValues: PaddingValues
 ) {
     val context = LocalContext.current
     val business by viewModel.activeBusiness.collectAsStateWithLifecycle()
     val allBusinesses by viewModel.allBusinesses.collectAsStateWithLifecycle()
     val isDarkTheme by viewModel.isDarkTheme.collectAsStateWithLifecycle()
+    val billingState by viewModel.billingState.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
 
     val currentBiz = business ?: BusinessProfile()
 
@@ -201,6 +213,253 @@ fun SettingsScreen(
                                 Text("Register New")
                             }
                         }
+                    }
+                }
+            }
+
+            // Google Account & One-Tap Sign In Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(38.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "G",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = if (!userProfile?.email.isNullOrBlank()) "Google એકાઉન્ટ લિંક્ડ" else "Google એકાઉન્ટ",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Text(
+                                        text = userProfile?.email?.ifBlank { null } ?: "1-ક્લિકમાં Google સાઇન ઇન કરો",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            OutlinedButton(
+                                onClick = onNavigateToAuth,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(if (!userProfile?.email.isNullOrBlank()) "ખાતું બદલો" else "સાઇન ઇન")
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Google Play Subscription & 90-Day Free Trial Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToSubscription() }
+                        .testTag("settings_subscription_card"),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = if (billingState.isSubscribed) {
+                            RoyalMaroonPrimary.copy(alpha = 0.08f)
+                        } else {
+                            AmberGoldSecondary.copy(alpha = 0.15f)
+                        }
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    color = if (billingState.isSubscribed) SuccessGreen else AmberGoldSecondary,
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(38.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.VerifiedUser,
+                                            contentDescription = null,
+                                            tint = if (billingState.isSubscribed) Color.White else Color(0xFF422B00),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Google Play સબ્સ્ક્રિપ્શન",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Text(
+                                        text = if (billingState.isSubscribed) {
+                                            "પ્રો વર્ઝન સક્રિય (Active Pro)"
+                                        } else {
+                                            "૯૦ દિવસનો ફ્રી ટ્રાયલ (${billingState.trialDaysRemaining} દિવસ બાકી)"
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = onNavigateToSubscription,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = RoyalMaroonPrimary
+                                ),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(
+                                    text = if (billingState.isSubscribed) "મેનેજ કરો" else "ટ્રાયલ જુઓ",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "અમર્યાદિત બુકિંગ, 1000+ ફોટો કેટલોગ અને WhatsApp PDF બિલિંગ Google Play Store દ્વારા સુરક્ષિત.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+
+            // Referral Program & Free Trial Days Extension Card
+            item {
+                val refCode = userProfile?.referralCode ?: "MV-FREE"
+                val refCount = userProfile?.referralCount ?: 0
+                val bonusDays = userProfile?.bonusDaysAdded ?: 0
+
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.CardGiftcard,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSecondary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "રેફરલ પ્રોગ્રામ (+60 દિવસ મફત)",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Text(
+                                        text = "3 મિત્રો જોડાવા પર 60 દિવસ ફ્રી ટ્રાયલ ઉમેરાય છે",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                        }
+
+                        // Referral Code Box
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(text = "તમારો રેફરલ કોડ:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = refCode,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 18.sp,
+                                        letterSpacing = 1.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Row {
+                                    IconButton(onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("MandapVala Referral Code", refCode))
+                                        Toast.makeText(context, "કોડ કોપી થયો: $refCode", Toast.LENGTH_SHORT).show()
+                                    }) {
+                                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                                    }
+                                    IconButton(onClick = {
+                                        val shareText = "મંડપ અને ડેકોરેશન બિઝનેસ માટે MandapVala એપ વાપરો!\nમારો રેફરલ કોડ: *$refCode* વાપરીને મેળવો 90 દિવસ ફ્રી ટ્રાયલ!\nhttps://marutiphoto.github.io/mandapvala/"
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        }
+                                        context.startActivity(Intent.createChooser(intent, "Share Referral Code"))
+                                    }) {
+                                        Icon(Icons.Default.Share, contentDescription = "Share", tint = Color(0xFF25D366))
+                                    }
+                                }
+                            }
+                        }
+
+                        Text(
+                            text = "તમારા સફળ રેફરલ્સ: $refCount  •  બોનસ દિવસો: +$bonusDays દિવસ",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
@@ -415,7 +674,7 @@ fun SettingsScreen(
                             value = catalogUrl,
                             onValueChange = { catalogUrl = it },
                             label = { Text("Customer Catalog Website URL") },
-                            placeholder = { Text("e.g. https://mandapvala.netlify.app or https://mandapvala.in") },
+                            placeholder = { Text("https://marutiphoto.github.io/mandapvala/") },
                             supportingText = { Text("This URL is shared with customers on WhatsApp so they can browse mandap photos on mobile.") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
@@ -439,7 +698,7 @@ fun SettingsScreen(
                                     bankAccount = accountNumber.trim(),
                                     bankIfsc = ifscCode.trim(),
                                     termsAndConditions = terms.trim(),
-                                    catalogUrl = catalogUrl.trim().ifEmpty { "https://mandapvala.in" }
+                                    catalogUrl = catalogUrl.trim()
                                 )
                                 viewModel.updateBusinessProfile(updated)
                                 Toast.makeText(context, "Business Profile updated successfully!", Toast.LENGTH_SHORT).show()

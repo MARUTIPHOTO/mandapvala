@@ -8,6 +8,16 @@ service cloud.firestore {
       allow write: if request.auth != null && (request.auth.uid == businessId || resource.data.ownerEmail == request.auth.token.email);
     }
 
+    // Users collection for User registration, 90-day expiry date, and referral data
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Referral tracking collection
+    match /referrals/{referralId} {
+      allow read, write: if true;
+    }
+
     // Customers collection under business
     match /customers/{customerId} {
       allow read, write: if request.auth != null;
@@ -22,6 +32,12 @@ service cloud.firestore {
     // Bills collection
     match /bills/{billId} {
       allow read, write: if request.auth != null;
+    }
+
+    // CustomerOrders collection - Real-time incoming customer orders and selections
+    match /CustomerOrders/{orderId} {
+      allow create: if true; // Public customer selection submission from web catalog or app
+      allow read, update, delete: if true; // Read real-time in app and manage order status
     }
 
     // Notifications collection (Customer selections push new notifications)

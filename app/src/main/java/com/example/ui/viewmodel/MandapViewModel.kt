@@ -1,6 +1,7 @@
 package com.example.ui.viewmodel
 
 import android.app.Application
+import android.app.Activity
 import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
@@ -10,13 +11,20 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.billing.BillingManager
+import com.example.billing.SubscriptionState
 import com.example.data.local.MandapDatabase
 import com.example.data.model.AppNotification
 import com.example.data.model.Bill
 import com.example.data.model.BillItem
 import com.example.data.model.BusinessProfile
 import com.example.data.model.Customer
+import com.example.data.model.CustomerOrder
+import com.example.data.model.CustomerOrderItem
 import com.example.data.model.GalleryItem
+import com.example.data.model.UserProfile
+import com.example.data.remote.FirebaseAuthService
+import com.example.data.remote.FirebaseOrderService
 import com.example.data.repository.MandapRepository
 import com.example.util.JsonHelper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,8 +41,26 @@ import java.util.Locale
 class MandapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: MandapRepository
+    private val firebaseOrderService = FirebaseOrderService()
+    private val billingManager: BillingManager = BillingManager.getInstance(application)
+    val authService = FirebaseAuthService(application)
     private val activeBizId = "biz_default"
 
+    val userProfile: StateFlow<UserProfile?> = authService.observeCurrentUser()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val billingState: StateFlow<SubscriptionState> = billingManager.subscriptionState
+
+    // Evaluates whether the user's trial has expired and requires subscription
+    val isAccessBlocked: StateFlow<Boolean> = combine(userProfile, billingState) { profile, billing ->
+        if (profile == null) {
+            false
+        } else {
+            val isSubscribed = billing.isSubscribed || profile.isSubscribed
+            val isTrialValid = System.currentTimeMillis() <= profile.expiryDate
+            !(isSubscribed || isTrialValid)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val activeBusiness: StateFlow<BusinessProfile?>
     val allBusinesses: StateFlow<List<BusinessProfile>>
     val customers: StateFlow<List<Customer>>
@@ -42,6 +68,7 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
     val bills: StateFlow<List<Bill>>
     val notifications: StateFlow<List<AppNotification>>
     val unreadNotificationCount: StateFlow<Int>
+    val customerOrders: StateFlow<List<CustomerOrder>>
 
     // Search and Filter States
     private val _customerSearchQuery = MutableStateFlow("")
@@ -95,10 +122,192 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
 
         unreadNotificationCount = repository.getUnreadNotificationCount(activeBizId)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+        customerOrders = firebaseOrderService.observeCustomerOrders()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+        // Real-time listener for incoming customer orders from catalog
+        viewModelScope.launch {
+            var knownOrderIds = setOf<String>()
+            var isFirst = true
+            customerOrders.collect { list ->
+                if (isFirst) {
+                    knownOrderIds = list.map { it.id }.toSet()
+                    isFirst = false
+                } else {
+                    val freshOrders = list.filter { it.id !in knownOrderIds && it.status == "NEW" }
+                    if (freshOrders.isNotEmpty()) {
+                        knownOrderIds = list.map { it.id }.toSet()
+                        triggerNotificationAlert()
+                        freshOrders.forEach { order ->
+                            val billItems = order.items.map {
+                                BillItem(
+                                    itemId = it.id,
+                                    title = it.title,
+                                    category = it.category,
+                                    imageUrl = it.imageUrl,
+                                    quantity = it.quantity,
+                                    price = it.price,
+                                    lineTotal = it.quantity * it.price
+                                )
+                            }
+                            repository.createNotification(
+                                AppNotification(
+                                    businessId = activeBizId,
+                                    title = "📥 New Order: ${order.customerName}",
+                                    message = "${order.customerName} selected ${order.itemsCount} items (₹%,.0f) from online catalog".format(order.totalAmount),
+                                    customerId = 0L,
+                                    customerName = order.customerName,
+                                    selectedItemsJson = JsonHelper.itemsToJson(billItems),
+                                    isRead = false,
+                                    timestamp = order.timestamp
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        // Ensure active business has the new GitHub Pages catalog URL configured
+        viewModelScope.launch {
+            repository.getActiveBusiness().collect { biz ->
+                if (biz != null && (biz.catalogUrl.isBlank() || biz.catalogUrl.contains("mandapvala.in") || biz.catalogUrl.contains("web.app"))) {
+                    repository.saveBusiness(biz.copy(catalogUrl = "https://marutiphoto.github.io/mandapvala/"))
+                }
+            }
+        }
     }
 
     fun toggleDarkTheme(enable: Boolean) {
         _isDarkTheme.value = enable
+    }
+
+    // Google Play Billing & 90-Day Free Trial Actions
+    fun launchBillingFlow(activity: Activity, productId: String, onFallback: (() -> Unit)? = null): Boolean {
+        return billingManager.launchBillingFlow(activity, productId, onFallback)
+    }
+
+    fun startLocal90DayFreeTrial() {
+        billingManager.startLocal90DayFreeTrial()
+    }
+
+    fun restorePurchases() {
+        billingManager.queryPurchases()
+    }
+
+    fun openPlayStoreSubscriptionSettings(context: Context) {
+        billingManager.openPlayStoreSubscriptionSettings(context)
+    }
+
+    fun clearBillingMessage() {
+        billingManager.clearUserMessage()
+    }
+
+    // Firebase Authentication & User Trial / Referral Logic
+    fun signUp(
+        name: String,
+        businessName: String,
+        email: String,
+        password: String,
+        mobile: String,
+        referralCode: String?,
+        onResult: (Result<UserProfile>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = authService.signUpWithEmail(
+                name = name,
+                businessName = businessName,
+                email = email,
+                password = password,
+                mobile = mobile,
+                referredByCode = referralCode
+            )
+            // If sign-up succeeded, update local business profile name
+            result.onSuccess { profile ->
+                val currentBiz = activeBusiness.value
+                if (currentBiz != null) {
+                    updateBusinessProfile(
+                        currentBiz.copy(
+                            name = profile.businessName,
+                            ownerName = profile.name,
+                            email = profile.email,
+                            mobile = profile.mobile
+                        )
+                    )
+                }
+            }
+            onResult(result)
+        }
+    }
+
+    fun signIn(
+        email: String,
+        password: String,
+        onResult: (Result<UserProfile>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = authService.signInWithEmail(email, password)
+            onResult(result)
+        }
+    }
+
+    fun signInWithGoogle(
+        idToken: String,
+        referredByCode: String? = null,
+        onResult: (Result<UserProfile>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = authService.signInWithGoogleIdToken(idToken, referredByCode)
+            result.onSuccess { profile ->
+                val currentBiz = activeBusiness.value
+                if (currentBiz != null) {
+                    updateBusinessProfile(
+                        currentBiz.copy(
+                            name = profile.businessName,
+                            ownerName = profile.name,
+                            email = profile.email,
+                            mobile = profile.mobile
+                        )
+                    )
+                }
+            }
+            onResult(result)
+        }
+    }
+
+    fun quickStartTrial(
+        name: String = "Mandap Partner",
+        businessName: String = "Shree Mandap & Decorators",
+        referralCode: String? = null,
+        onResult: (Result<UserProfile>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = authService.quickStartTrial(name, businessName, referralCode)
+            result.onSuccess { profile ->
+                val currentBiz = activeBusiness.value
+                if (currentBiz != null) {
+                    updateBusinessProfile(
+                        currentBiz.copy(
+                            name = profile.businessName,
+                            ownerName = profile.name,
+                            email = profile.email
+                        )
+                    )
+                }
+            }
+            onResult(result)
+        }
+    }
+
+    fun signOut() {
+        authService.signOut()
+    }
+
+    fun isUserExpired(): Boolean {
+        val profile = userProfile.value ?: return false
+        val isSubscribed = billingState.value.isSubscribed || profile.isSubscribed
+        if (isSubscribed) return false
+        return System.currentTimeMillis() > profile.expiryDate
     }
 
     // Business Profile Actions
@@ -440,6 +649,30 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
 
             repository.createNotification(notification)
 
+            // Also push to Firestore CustomerOrders so web & in-app sync seamlessly
+            val matchedCust = customers.value.find { it.id == customerId }
+            val custOrder = CustomerOrder(
+                customerName = customerName,
+                customerMobile = matchedCust?.mobile ?: "",
+                eventDate = matchedCust?.eventDate ?: "",
+                items = selectedBillItems.map {
+                    CustomerOrderItem(
+                        id = it.itemId,
+                        title = it.title,
+                        category = it.category,
+                        price = it.price,
+                        imageUrl = it.imageUrl,
+                        quantity = it.quantity
+                    )
+                },
+                totalAmount = selectedBillItems.sumOf { it.lineTotal },
+                itemsCount = selectedBillItems.sumOf { it.quantity },
+                status = "NEW",
+                timestamp = System.currentTimeMillis(),
+                notes = "In-App Customer Selection"
+            )
+            firebaseOrderService.submitCustomerOrder(custOrder)
+
             // Play notification sound & vibration cue
             triggerNotificationAlert()
 
@@ -507,6 +740,59 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
         )
         markNotificationAsRead(notification.id)
         onReady()
+    }
+
+    fun convertCustomerOrderToBill(order: CustomerOrder, onReady: () -> Unit) {
+        val convertedItems = order.items.map { item ->
+            BillItem(
+                itemId = item.id,
+                title = item.title,
+                category = item.category,
+                imageUrl = item.imageUrl,
+                quantity = item.quantity,
+                price = item.price,
+                lineTotal = item.quantity * item.price
+            )
+        }
+        val calculatedSubtotal = if (order.totalAmount > 0.0) order.totalAmount else convertedItems.sumOf { it.lineTotal }
+        val dateString = if (order.eventDate.isNotBlank()) order.eventDate else SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        val draft = BillDraftState(
+            id = 0,
+            billNumber = "BILL-${SimpleDateFormat("yyMMdd-HHmm", Locale.getDefault()).format(Date())}",
+            customerId = 0,
+            customerName = order.customerName,
+            customerMobile = order.customerMobile,
+            customerAddress = "",
+            eventDate = dateString,
+            eventType = "Wedding",
+            items = convertedItems,
+            subtotal = calculatedSubtotal,
+            discount = 0.0,
+            gstEnabled = false,
+            gstRate = 18.0,
+            gstAmount = 0.0,
+            grandTotal = calculatedSubtotal,
+            advance = 0.0,
+            balance = calculatedSubtotal,
+            status = "PENDING",
+            notes = if (order.notes.isNotBlank()) "Online Order: ${order.notes}" else "Customer Online Catalog Order"
+        ).recalculate()
+
+        _draftBill.value = draft
+        // Mark order as BILLED in Firestore
+        if (order.id.isNotBlank()) {
+            firebaseOrderService.updateOrderStatus(order.id, "BILLED")
+        }
+        onReady()
+    }
+
+    fun updateOrderStatus(orderId: String, newStatus: String) {
+        firebaseOrderService.updateOrderStatus(orderId, newStatus)
+    }
+
+    fun deleteCustomerOrder(orderId: String) {
+        firebaseOrderService.deleteCustomerOrder(orderId)
     }
 }
 

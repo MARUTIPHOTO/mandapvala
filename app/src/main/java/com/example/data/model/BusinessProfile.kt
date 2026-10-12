@@ -20,6 +20,6 @@ data class BusinessProfile(
     val bankIfsc: String = "SBIN0001234",
     val upiId: String = "radhemandap@upi",
     val termsAndConditions: String = "1. Advance 30% booking is non-refundable.\n2. Any damage or loss to decoration items will be billed separately.\n3. Final payment required before event completion.",
-    val catalogUrl: String = "https://mandapvala.in",
+    val catalogUrl: String = "https://marutiphoto.github.io/mandapvala/",
     val isActive: Boolean = true
 )
