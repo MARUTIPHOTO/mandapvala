@@ -55,29 +55,28 @@ object WhatsAppHelper {
         customUrl: String? = null
     ) {
         val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
-        val base = if (business.catalogUrl.isNotBlank() && !business.catalogUrl.contains("mandapvala.in") && !business.catalogUrl.contains("web.app")) {
-            business.catalogUrl.trim()
+        val base = "https://marutiphoto.github.io/mandapvala/"
+        val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
+        val cleanCustPhone = customerMobile.trim()
+
+        val liveLink = if (customUrl != null && customUrl.startsWith("https://marutiphoto.github.io/mandapvala/") && customUrl.contains("cname=")) {
+            customUrl
         } else {
-            "https://marutiphoto.github.io/mandapvala/"
-        }
-        val liveLink = customUrl ?: if (base.contains("?")) {
-            "$base&phone=$bizPhone&biz=${business.id}&cust=$customerId"
-        } else {
-            "$base?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+            "$base?phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
         }
         val message = """
-            🙏 *Namaste $customerName ji!*
+            🙏 *નમસ્તે $customerName જી!*
             
-            Greetings from *${business.name}*!
+            *${business.name}* તરફથી હાર્દિક સ્વાગત છે.
             
-            Please browse our exclusive Mandap, Stage, Sofa & Flower Decoration catalog and select your favorite designs:
+            અમારા ડેકોરેશન કેટલોગમાંથી તમારા પ્રસંગ માટે મનપસંદ મંડપ, સ્ટેજ, સોફા અને ફ્લાવર ડિઝાઇન્સ પસંદ કરવા નીચેની લિંક ઓપન કરો:
             
-            👉 *Open Online Catalog:*
+            👉 *ઓનલાઇન કેટલોગ લિંક:*
             $liveLink
             
-            Browse photos, select your preferred setups, and send choices directly on WhatsApp.
+            ✨ આ લિંકમાં તમે ફોટા જોઈ શકો છો, આઇટમ ક્વોન્ટિટી (Quantity) અને ભાડું (Rent Price) પસંદ કરીને સબમિટ કરી શકો છો.
             
-            📞 *Contact:* ${business.mobile}
+            📞 *સંપર્ક:* ${business.mobile}
         """.trimIndent()
 
         sendTextMessage(context, customerMobile, message)

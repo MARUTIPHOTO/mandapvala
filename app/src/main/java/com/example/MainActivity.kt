@@ -272,30 +272,46 @@ fun MandapApp(viewModel: MandapViewModel) {
             composable(
                 route = Screen.CustomerPortal.route,
                 arguments = listOf(
-                    navArgument("customerId") { type = NavType.LongType; defaultValue = 0L },
-                    navArgument("customerName") { type = NavType.StringType; defaultValue = "Customer" }
+                    navArgument("customerId") { type = NavType.StringType; defaultValue = "0" },
+                    navArgument("customerName") { type = NavType.StringType; defaultValue = "Customer" },
+                    navArgument("cname") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("cphone") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("phone") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("biz") { type = NavType.StringType; defaultValue = "" }
                 ),
                 deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/?phone={phone}&biz={biz}&cust={customerId}" },
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala?phone={phone}&biz={biz}&cust={customerId}" },
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/index.html?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/index.html?phone={phone}&biz={biz}&cust={customerId}" },
-                    navDeepLink { uriPattern = "https://mandapvala.in/view/catalog?biz={biz}&cust={customerId}" },
-                    navDeepLink { uriPattern = "http://mandapvala.in/view/catalog?biz={biz}&cust={customerId}" }
+                    navDeepLink { uriPattern = "https://mandapvala.in/view/catalog?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
+                    navDeepLink { uriPattern = "https://mandapvala.in/catalog?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" }
                 )
             ) { backStackEntry ->
-                val custId = backStackEntry.arguments?.getLong("customerId") ?: 0L
-                val rawCustName = backStackEntry.arguments?.getString("customerName") ?: "Customer"
+                val rawCustId = backStackEntry.arguments?.getString("customerId") ?: "0"
+                val custId = rawCustId.toLongOrNull() ?: 0L
+                val rawCustName = backStackEntry.arguments?.getString("customerName") ?: ""
+                val rawCname = backStackEntry.arguments?.getString("cname") ?: ""
+                val rawCphone = backStackEntry.arguments?.getString("cphone") ?: ""
+
+                val rawName = if (rawCname.isNotBlank()) rawCname else if (rawCustName.isNotBlank() && rawCustName != "{customerName}") rawCustName else "Customer"
                 val custName = try {
-                    URLDecoder.decode(rawCustName, "UTF-8")
+                    URLDecoder.decode(rawName, "UTF-8")
                 } catch (e: Exception) {
-                    rawCustName
+                    rawName
                 }
 
                 CustomerPortalScreen(
                     customerId = custId,
                     customerName = custName,
+                    customerMobile = rawCphone,
                     viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToBillDraft = {
+                        navController.navigate(Screen.CreateEditBill.route)
+                    }
                 )
             }
 

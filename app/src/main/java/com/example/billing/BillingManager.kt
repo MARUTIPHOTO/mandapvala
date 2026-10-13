@@ -89,9 +89,28 @@ class BillingManager private constructor(private val context: Context) : Purchas
     }
 
     /**
+     * Check if Google Play Store (com.android.vending) is available on the device
+     */
+    fun isPlayStoreAvailable(): Boolean {
+        return try {
+            val pm = context.packageManager
+            val info = pm.getPackageInfo("com.android.vending", 0)
+            info.applicationInfo?.enabled == true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
      * Set up Google Play BillingClient with modern 7.x lifecycle
      */
     private fun setupBillingClient() {
+        if (!isPlayStoreAvailable()) {
+            Log.i(TAG, "Google Play Store (com.android.vending) not available. Using local trial and offline plans.")
+            _subscriptionState.update { it.copy(isBillingConnected = false, availablePlans = defaultPlans()) }
+            return
+        }
+
         try {
             val pendingParams = PendingPurchasesParams.newBuilder()
                 .enableOneTimeProducts()
@@ -109,6 +128,7 @@ class BillingManager private constructor(private val context: Context) : Purchas
     }
 
     fun startBillingConnection() {
+        if (!isPlayStoreAvailable()) return
         val client = billingClient ?: return
         if (client.isReady) {
             queryPurchases()
@@ -131,9 +151,9 @@ class BillingManager private constructor(private val context: Context) : Purchas
             }
 
             override fun onBillingServiceDisconnected() {
-                Log.w(TAG, "Billing service disconnected. Reconnecting...")
+                Log.w(TAG, "Billing service disconnected.")
                 _subscriptionState.update { it.copy(isBillingConnected = false) }
-                if (connectionRetryCount < 3) {
+                if (isPlayStoreAvailable() && connectionRetryCount < 3) {
                     connectionRetryCount++
                     scope.launch {
                         delay(2000L * connectionRetryCount)

@@ -7,10 +7,11 @@ sealed class Screen(val route: String) {
     object Customers : Screen("customers")
     object Settings : Screen("settings")
     object CreateEditBill : Screen("create_edit_bill")
-    object CustomerPortal : Screen("customer_portal/{customerId}/{customerName}") {
-        fun createRoute(customerId: Long, customerName: String): String {
-            val encodedName = java.net.URLEncoder.encode(customerName, "UTF-8")
-            return "customer_portal/$customerId/$encodedName"
+    object CustomerPortal : Screen("customer_portal?customerId={customerId}&customerName={customerName}&cname={cname}&cphone={cphone}&phone={phone}&biz={biz}") {
+        fun createRoute(customerId: Long, customerName: String, customerPhone: String = ""): String {
+            val encodedName = try { java.net.URLEncoder.encode(customerName, "UTF-8") } catch (e: Exception) { customerName }
+            val encodedPhone = try { java.net.URLEncoder.encode(customerPhone, "UTF-8") } catch (e: Exception) { customerPhone }
+            return "customer_portal?customerId=$customerId&customerName=$encodedName&cname=$encodedName&cphone=$encodedPhone"
         }
     }
     object Notifications : Screen("notifications")

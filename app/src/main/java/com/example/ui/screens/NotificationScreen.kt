@@ -265,7 +265,8 @@ fun NotificationCard(
                 ) {
                     Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Create Official Bill", fontSize = 13.sp)
+                    val btnCustName = notification.customerName.ifBlank { "Customer" }
+                    Text("Create Bill for $btnCustName", fontSize = 13.sp)
                 }
             }
         }

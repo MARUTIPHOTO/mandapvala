@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
@@ -38,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -77,8 +79,10 @@ import com.example.ui.viewmodel.MandapViewModel
 fun CustomerPortalScreen(
     customerId: Long,
     customerName: String,
+    customerMobile: String = "",
     viewModel: MandapViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToBillDraft: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val business by viewModel.activeBusiness.collectAsStateWithLifecycle()
@@ -89,6 +93,8 @@ fun CustomerPortalScreen(
     var submitted by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
     var previewItem by remember { mutableStateOf<GalleryItem?>(null) }
+    var inputCustomerName by remember { mutableStateOf(customerName.ifBlank { "Customer" }) }
+    var inputCustomerMobile by remember { mutableStateOf(customerMobile) }
 
     val categories = listOf("All", "Mandap", "Stage", "Flower", "Sofa", "Chair", "Lighting", "Gate", "Other")
 
@@ -164,8 +170,9 @@ fun CustomerPortalScreen(
                         Button(
                             onClick = {
                                 viewModel.submitCustomerSelection(
-                                    customerName = customerName,
+                                    customerName = inputCustomerName.ifBlank { "Customer" },
                                     customerId = customerId,
+                                    customerMobile = inputCustomerMobile,
                                     onComplete = {
                                         submitted = true
                                         Toast.makeText(context, "Selection submitted successfully!", Toast.LENGTH_SHORT).show()
@@ -223,10 +230,24 @@ fun CustomerPortalScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = onBack,
-                        shape = RoundedCornerShape(12.dp)
+                        onClick = {
+                            onNavigateToBillDraft?.invoke() ?: onBack()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = RoyalMaroonPrimary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().testTag("create_bill_from_portal_button")
                     ) {
-                        Text("Return to App")
+                        Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("📄 આ સિલેક્શનનું બિલ બનાવો (Create Bill)", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = onBack,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("પૂર્ણ (Done / Return to App)")
                     }
                 }
             }
@@ -239,7 +260,7 @@ fun CustomerPortalScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 90.dp)
             ) {
-                // Greeting Card
+                // Greeting Card & Customer Contact Details
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -248,17 +269,37 @@ fun CustomerPortalScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Text(
-                                text = "Namaste, $customerName ji! 🙏",
+                                text = "Namaste, ${inputCustomerName.ifBlank { "Customer" }} ji! 🙏",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Browse our latest decoration inventory below (${galleryItems.size} designs available). Tap any photo to zoom, and use + / - to pick your favorites.",
+                                text = "Browse our latest decoration inventory (${galleryItems.size} designs available). Tap any photo to zoom, and use + / - to pick your favorites.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                androidx.compose.material3.OutlinedTextField(
+                                    value = inputCustomerName,
+                                    onValueChange = { inputCustomerName = it },
+                                    label = { Text("તમારું નામ (Name)") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                androidx.compose.material3.OutlinedTextField(
+                                    value = inputCustomerMobile,
+                                    onValueChange = { inputCustomerMobile = it },
+                                    label = { Text("મોબાઈલ નંબર (Phone)") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }

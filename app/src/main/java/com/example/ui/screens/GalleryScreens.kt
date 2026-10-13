@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import java.net.URLEncoder
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -1225,8 +1227,9 @@ fun FullScreenPhotoDialog(
 
 /**
  * Customer Link Share Dialog:
- * Lets decorator select a customer or type a customer name,
- * and share the catalog link via WhatsApp, copy link, or open portal in app.
+ * Lets decorator select an existing customer (e.g. Hardik Shah) from added customers list
+ * and with 1 click directly send the catalog link to their WhatsApp,
+ * or enter a new customer name & number, copy link, or preview in app.
  */
 @Composable
 fun CustomerLinkShareDialog(
@@ -1237,24 +1240,42 @@ fun CustomerLinkShareDialog(
 ) {
     val context = LocalContext.current
     var selectedCustomer by remember { mutableStateOf<Customer?>(customers.firstOrNull()) }
+    var customerSearch by remember { mutableStateOf("") }
     var manualName by remember { mutableStateOf("") }
     var manualPhone by remember { mutableStateOf("") }
-    var useManualCustomer by remember { mutableStateOf(customers.isEmpty()) }
+    var isNewCustomerMode by remember { mutableStateOf(customers.isEmpty()) }
 
-    val customerName = if (useManualCustomer) manualName.ifBlank { "Valued Customer" } else (selectedCustomer?.name ?: "Valued Customer")
-    val customerPhone = if (useManualCustomer) manualPhone else (selectedCustomer?.mobile ?: "")
-    val customerId = if (useManualCustomer) 0L else (selectedCustomer?.id ?: 0L)
+    val filteredCustomers = remember(customers, customerSearch) {
+        if (customerSearch.isBlank()) customers
+        else customers.filter {
+            it.name.contains(customerSearch, ignoreCase = true) || it.mobile.contains(customerSearch)
+        }
+    }
+
+    val customerName = if (isNewCustomerMode) manualName.ifBlank { "Valued Customer" } else (selectedCustomer?.name ?: "Valued Customer")
+    val customerPhone = if (isNewCustomerMode) manualPhone else (selectedCustomer?.mobile ?: "")
+    val customerId = if (isNewCustomerMode) 0L else (selectedCustomer?.id ?: 0L)
     val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
 
-    val baseCatalogUrl = if (business.catalogUrl.isNotBlank() && !business.catalogUrl.contains("mandapvala.in") && !business.catalogUrl.contains("web.app")) {
-        business.catalogUrl.trim()
-    } else {
-        "https://marutiphoto.github.io/mandapvala/"
-    }
-    val catalogLink = if (baseCatalogUrl.contains("?")) {
-        "$baseCatalogUrl&phone=$bizPhone&biz=${business.id}&cust=$customerId"
-    } else {
-        "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$customerId"
+    val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
+    val cleanCustPhone = customerPhone.trim()
+
+    val baseCatalogUrl = "https://marutiphoto.github.io/mandapvala/"
+    val catalogLink = "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
+
+    fun sendToWhatsApp(name: String, phone: String, id: Long) {
+        val encName = try { URLEncoder.encode(name.trim(), "UTF-8") } catch (e: Exception) { name.trim() }
+        val cleanPhone = phone.trim()
+        val customLink = "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$id&cname=$encName&cphone=$cleanPhone"
+        WhatsAppHelper.shareCustomerGalleryLink(
+            context = context,
+            customerName = name,
+            customerMobile = cleanPhone,
+            business = business,
+            customerId = id,
+            customUrl = customLink
+        )
+        onDismiss()
     }
 
     AlertDialog(
@@ -1263,84 +1284,160 @@ fun CustomerLinkShareDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Share, contentDescription = null, tint = RoyalMaroonPrimary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Send Selection Link", fontWeight = FontWeight.Bold)
+                Column {
+                    Text("Send Selection Link", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("કસ્ટમર સિલેક્શન કેટલોગ લિંક", style = MaterialTheme.typography.labelSmall, color = RoyalMaroonPrimary)
+                }
             }
         },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Share your decoration catalog with customer so they can pick designs & mandap setups on their phone:",
+                    text = "ગ્રાહકને કેટલોગ લિંક મોકલો જેથી તેઓ પોતાના ફોન પર મંડપ, સ્ટેજ, સોફાની ડિઝાઇન અને ભાડું જોઈને પસંદગી કરી શકે:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (customers.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Toggle tabs: Added Customers vs New Customer
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (!isNewCustomerMode) RoyalMaroonPrimary else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { isNewCustomerMode = false }
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (!useManualCustomer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { useManualCustomer = false }
-                        ) {
-                            Text(
-                                "Existing Customer",
-                                color = if (!useManualCustomer) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
+                        Text(
+                            "સેવ કરેલા ગ્રાહક (${customers.size})",
+                            color = if (!isNewCustomerMode) Color.White else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
 
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (useManualCustomer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { useManualCustomer = true }
-                        ) {
-                            Text(
-                                "New Number",
-                                color = if (useManualCustomer) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isNewCustomerMode) RoyalMaroonPrimary else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { isNewCustomerMode = true }
+                    ) {
+                        Text(
+                            "+ નવો નંબર / ગ્રાહક",
+                            color = if (isNewCustomerMode) Color.White else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
                 }
 
-                if (!useManualCustomer && customers.isNotEmpty()) {
-                    Text("Select Customer:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(customers) { cust ->
-                            val isSelected = selectedCustomer?.id == cust.id
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
-                                modifier = Modifier.clickable { selectedCustomer = cust }
-                            ) {
-                                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                                    Text(
-                                        cust.name,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        cust.mobile,
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
+                if (!isNewCustomerMode) {
+                    // Search bar for customers
+                    if (customers.size > 3) {
+                        OutlinedTextField(
+                            value = customerSearch,
+                            onValueChange = { customerSearch = it },
+                            placeholder = { Text("ગ્રાહક શોધો (Search customer...)") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Text("ગ્રાહક પસંદ કરો અને 1-ક્લિકમાં WhatsApp પર મોકલો:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+
+                    if (filteredCustomers.isEmpty()) {
+                        Text("કોઈ ગ્રાહક મળ્યા નથી.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    } else {
+                        // Vertical scrollable list of customers
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height((filteredCustomers.size * 64).coerceIn(64, 200).dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(filteredCustomers, key = { it.id }) { cust ->
+                                val isSelected = selectedCustomer?.id == cust.id
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = if (isSelected) BorderStroke(1.5.dp, RoyalMaroonPrimary) else null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { selectedCustomer = cust }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(34.dp)
+                                                    .clip(CircleShape)
+                                                    .background(RoyalMaroonPrimary),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = cust.name.take(1).uppercase(),
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Column {
+                                                Text(
+                                                    text = cust.name,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = cust.mobile,
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.outline
+                                                )
+                                            }
+                                        }
+
+                                        // Direct 1-Click WhatsApp Button on customer row
+                                        Button(
+                                            onClick = {
+                                                sendToWhatsApp(cust.name, cust.mobile, cust.id)
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                            modifier = Modifier.height(34.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.AutoMirrored.Filled.Send,
+                                                contentDescription = "Send WhatsApp",
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("WhatsApp", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1349,19 +1446,36 @@ fun CustomerLinkShareDialog(
                     OutlinedTextField(
                         value = manualName,
                         onValueChange = { manualName = it },
-                        label = { Text("Customer Name") },
-                        placeholder = { Text("e.g. Ramesh Patel") },
+                        label = { Text("Customer Name (ગ્રાહકનું નામ)") },
+                        placeholder = { Text("e.g. Hardik Shah") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = manualPhone,
                         onValueChange = { manualPhone = it },
-                        label = { Text("WhatsApp / Mobile Number") },
-                        placeholder = { Text("10 digit number") },
+                        label = { Text("WhatsApp Number (મોબાઇલ નંબર)") },
+                        placeholder = { Text("10 digit mobile number") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    Button(
+                        onClick = {
+                            if (manualPhone.trim().length >= 10) {
+                                sendToWhatsApp(manualName.ifBlank { "Customer" }, manualPhone, 0L)
+                            } else {
+                                Toast.makeText(context, "કૃપા કરીને ૧૦ અંકનો સાચો મોબાઈલ નંબર દાખલ કરો", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Send to WhatsApp (વોટ્સએપ પર મોકલો)", fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 // Link Preview Box
@@ -1371,12 +1485,12 @@ fun CustomerLinkShareDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(10.dp)) {
-                        Text("Customer Link:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text("ગ્રાહક માટે કેટલોગ લિંક (Fixed Portal):", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         Text(
                             text = catalogLink,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
@@ -1435,15 +1549,7 @@ fun CustomerLinkShareDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    WhatsAppHelper.shareCustomerGalleryLink(
-                        context = context,
-                        customerName = customerName,
-                        customerMobile = customerPhone,
-                        business = business,
-                        customerId = customerId,
-                        customUrl = catalogLink
-                    )
-                    onDismiss()
+                    sendToWhatsApp(customerName, customerPhone, customerId)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
                 shape = RoundedCornerShape(10.dp)

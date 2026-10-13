@@ -11,6 +11,7 @@ data class AppNotification(
     val message: String,
     val customerId: Long = 0,
     val customerName: String = "",
+    val customerMobile: String = "",
     val selectedItemsJson: String = "[]",
     val isRead: Boolean = false,
     val timestamp: Long = System.currentTimeMillis()

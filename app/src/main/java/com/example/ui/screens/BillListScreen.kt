@@ -404,11 +404,7 @@ fun BillListScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = {
-                                    val catalogUrl = if (currentBiz.catalogUrl.isNotBlank() && !currentBiz.catalogUrl.contains("mandapvala.in") && !currentBiz.catalogUrl.contains("web.app")) {
-                                        currentBiz.catalogUrl.trim()
-                                    } else {
-                                        "https://marutiphoto.github.io/mandapvala/"
-                                    }
+                                    val catalogUrl = "https://marutiphoto.github.io/mandapvala/"
                                     val msg = "🙏 નમસ્તે!\nઅમારો ડેકોરેશન કેટલોગ જોવા અને ડિઝાઇન પસંદ કરવા નીચેની લિંક પર ક્લિક કરો:\n$catalogUrl"
                                     WhatsAppHelper.sendTextMessage(context, "", msg)
                                 },

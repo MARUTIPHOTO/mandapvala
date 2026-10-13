@@ -154,15 +154,56 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
                             repository.createNotification(
                                 AppNotification(
                                     businessId = activeBizId,
-                                    title = "📥 New Order: ${order.customerName}",
-                                    message = "${order.customerName} selected ${order.itemsCount} items (₹%,.0f) from online catalog".format(order.totalAmount),
+                                    title = "🎉 New Order: ${order.customerName}",
+                                    message = "${order.customerName} (${order.customerMobile}) selected ${order.itemsCount} items (₹%,.0f) from online catalog".format(order.totalAmount),
                                     customerId = 0L,
                                     customerName = order.customerName,
+                                    customerMobile = order.customerMobile,
                                     selectedItemsJson = JsonHelper.itemsToJson(billItems),
                                     isRead = false,
                                     timestamp = order.timestamp
                                 )
                             )
+
+                            // Auto-save new customer if not already in customer directory
+                            val cleanName = order.customerName.trim()
+                            if (cleanName.isNotBlank() && cleanName != "Customer" && cleanName != "Valued Customer") {
+                                val exists = customers.value.any { it.name.equals(cleanName, ignoreCase = true) }
+                                if (!exists) {
+                                    repository.saveCustomer(
+                                        Customer(
+                                            name = cleanName,
+                                            mobile = order.customerMobile.trim(),
+                                            eventDate = order.eventDate.ifBlank { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+                                        )
+                                    )
+                                }
+                            }
+
+                            // Pre-fill draft bill so tapping Create Bill or Done has customer name and items ready
+                            val calculatedSubtotal = if (order.totalAmount > 0.0) order.totalAmount else billItems.sumOf { it.lineTotal }
+                            val draft = BillDraftState(
+                                id = 0,
+                                billNumber = "BILL-${SimpleDateFormat("yyMMdd-HHmm", Locale.getDefault()).format(Date())}",
+                                customerId = 0L,
+                                customerName = order.customerName,
+                                customerMobile = order.customerMobile,
+                                customerAddress = "",
+                                eventDate = order.eventDate.ifBlank { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) },
+                                eventType = "Wedding",
+                                items = billItems,
+                                subtotal = calculatedSubtotal,
+                                discount = 0.0,
+                                gstEnabled = false,
+                                gstRate = 18.0,
+                                gstAmount = 0.0,
+                                grandTotal = calculatedSubtotal,
+                                advance = 0.0,
+                                balance = calculatedSubtotal,
+                                status = "PENDING",
+                                notes = if (order.notes.isNotBlank()) "Online Catalog: ${order.notes}" else "Customer Online Catalog Order"
+                            ).recalculate()
+                            _draftBill.value = draft
                         }
                     }
                 }
@@ -573,6 +614,23 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
             notes = state.notes
         )
         viewModelScope.launch {
+            // Auto-save new customer if not already in customer directory
+            val cleanName = state.customerName.trim()
+            if (cleanName.isNotBlank() && cleanName != "Walk-in Customer") {
+                val exists = customers.value.any { it.name.equals(cleanName, ignoreCase = true) }
+                if (!exists) {
+                    repository.saveCustomer(
+                        Customer(
+                            name = cleanName,
+                            mobile = state.customerMobile.trim(),
+                            address = state.customerAddress.trim(),
+                            eventDate = state.eventDate,
+                            eventType = state.eventType
+                        )
+                    )
+                }
+            }
+
             if (billEntity.id == 0L) {
                 val newId = repository.saveBill(billEntity)
                 onSaved(billEntity.copy(id = newId))
@@ -612,6 +670,7 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
     fun submitCustomerSelection(
         customerName: String,
         customerId: Long,
+        customerMobile: String = "",
         onComplete: () -> Unit
     ) {
         viewModelScope.launch {
@@ -636,12 +695,23 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
             }
 
             val count = selectedBillItems.sumOf { it.quantity }
+            val matchedCust = customers.value.find { it.id == customerId }
+                ?: customers.value.find { it.name.equals(customerName, ignoreCase = true) }
+            val finalPhone = if (customerMobile.isNotBlank()) customerMobile else (matchedCust?.mobile ?: "")
+
+            val notifMessage = if (finalPhone.isNotBlank()) {
+                "$customerName ($finalPhone) selected $count items for upcoming event."
+            } else {
+                "$customerName selected $count items for upcoming event."
+            }
+
             val notification = AppNotification(
                 businessId = activeBizId,
                 title = "🎉 New Selection from $customerName",
-                message = "$customerName selected $count items for upcoming event.",
+                message = notifMessage,
                 customerId = customerId,
                 customerName = customerName,
+                customerMobile = finalPhone,
                 selectedItemsJson = JsonHelper.itemsToJson(selectedBillItems),
                 isRead = false,
                 timestamp = System.currentTimeMillis()
@@ -649,11 +719,52 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
 
             repository.createNotification(notification)
 
+            // Auto-save customer if not already in customer directory
+            val cleanCustName = customerName.trim()
+            var effectiveCustId = matchedCust?.id ?: customerId
+            if (matchedCust == null && cleanCustName.isNotBlank() && cleanCustName != "Customer" && cleanCustName != "Valued Customer") {
+                val exists = customers.value.any { it.name.equals(cleanCustName, ignoreCase = true) }
+                if (!exists) {
+                    val newCustId = repository.saveCustomer(
+                        Customer(
+                            name = cleanCustName,
+                            mobile = finalPhone.trim(),
+                            eventDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        )
+                    )
+                    effectiveCustId = newCustId
+                }
+            }
+
+            // Pre-fill draft bill with customer name and items so Done / Create Bill works instantly
+            val calculatedSubtotal = selectedBillItems.sumOf { it.lineTotal }
+            val draft = BillDraftState(
+                id = 0,
+                billNumber = "BILL-${SimpleDateFormat("yyMMdd-HHmm", Locale.getDefault()).format(Date())}",
+                customerId = effectiveCustId,
+                customerName = customerName,
+                customerMobile = finalPhone,
+                customerAddress = matchedCust?.address ?: "",
+                eventDate = matchedCust?.eventDate.takeIf { !it.isNullOrBlank() } ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+                eventType = "Wedding",
+                items = selectedBillItems,
+                subtotal = calculatedSubtotal,
+                discount = 0.0,
+                gstEnabled = false,
+                gstRate = 18.0,
+                gstAmount = 0.0,
+                grandTotal = calculatedSubtotal,
+                advance = 0.0,
+                balance = calculatedSubtotal,
+                status = "PENDING",
+                notes = "Customer Selection (${selectedBillItems.size} items)"
+            ).recalculate()
+            _draftBill.value = draft
+
             // Also push to Firestore CustomerOrders so web & in-app sync seamlessly
-            val matchedCust = customers.value.find { it.id == customerId }
             val custOrder = CustomerOrder(
                 customerName = customerName,
-                customerMobile = matchedCust?.mobile ?: "",
+                customerMobile = finalPhone,
                 eventDate = matchedCust?.eventDate ?: "",
                 items = selectedBillItems.map {
                     CustomerOrderItem(
@@ -730,10 +841,13 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
     fun convertNotificationToBill(notification: AppNotification, onReady: () -> Unit) {
         val selectedItems = JsonHelper.jsonToItems(notification.selectedItemsJson)
         val customer = customers.value.find { it.id == notification.customerId }
+            ?: customers.value.find { it.name.equals(notification.customerName, ignoreCase = true) }
+        val finalMobile = if (customer?.mobile?.isNotBlank() == true) customer.mobile else notification.customerMobile
+
         startNewBill(
             customer = customer ?: Customer(
-                name = notification.customerName,
-                mobile = "",
+                name = notification.customerName.ifBlank { "Customer" },
+                mobile = finalMobile,
                 eventDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             ),
             prefilledItems = selectedItems

@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         Bill::class,
         AppNotification::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class MandapDatabase : RoomDatabase() {

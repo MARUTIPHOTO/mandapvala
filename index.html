@@ -100,7 +100,7 @@
     <p class="subtitle">તમામ ડેકોરેશન કેટલોગનું ઓનલાઇન પોર્ટલ</p>
 
     <!-- Customer Selection Catalog -->
-    <a href="./catalog.html" class="btn btn-gold">
+    <a href="./catalog.html" id="catalogBtn" class="btn btn-gold">
       <span class="icon">✨</span>
       <span>કસ્ટમર ડેકોરેશન કેટલોગ જુઓ</span>
     </a>
@@ -109,5 +109,16 @@
       <strong>💡 ગ્રાહકો માટે:</strong> કસ્ટમર કેટલોગ બટન પર ક્લિક કરીને સીધું જ મંડપ, સ્ટેજ અને સોફા સિલેક્શન કરીને WhatsApp પર મોકલી શકાય છે.
     </div>
   </div>
+
+  <script>
+    // If customer parameters are passed (cname, phone, cust, biz), forward straight to catalog.html
+    const searchParams = window.location.search;
+    if (searchParams && (searchParams.includes('cname') || searchParams.includes('phone') || searchParams.includes('cust') || searchParams.includes('biz'))) {
+      window.location.replace('./catalog.html' + searchParams);
+    } else if (searchParams) {
+      const btn = document.getElementById('catalogBtn');
+      if (btn) btn.href = './catalog.html' + searchParams;
+    }
+  </script>
 </body>
 </html>
