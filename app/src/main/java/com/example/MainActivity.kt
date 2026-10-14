@@ -130,7 +130,7 @@ fun MandapApp(viewModel: MandapViewModel) {
 
     val showBottomBar = tabs.any { it.route == currentRoute } && !isAccessBlocked && currentRoute != Screen.SubscriptionRequired.route && currentRoute != Screen.Auth.route
 
-    val isUserLoggedIn = Firebase.auth.currentUser != null || userProfile != null
+    val isUserLoggedIn = viewModel.isUserLoggedIn()
     val initialStartDestination = if (isUserLoggedIn) Screen.Home.route else Screen.Auth.route
 
     Scaffold(

@@ -55,14 +55,16 @@ object WhatsAppHelper {
         customUrl: String? = null
     ) {
         val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
-        val base = "https://marutiphoto.github.io/mandapvala/"
+        val rawBase = business.catalogUrl.trim().ifBlank { "https://marutiphoto.github.io/mandapvala/" }
+        val base = if (rawBase.contains("?")) rawBase else if (rawBase.endsWith("/")) rawBase else "$rawBase/"
         val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
         val cleanCustPhone = customerMobile.trim()
 
-        val liveLink = if (customUrl != null && customUrl.startsWith("https://marutiphoto.github.io/mandapvala/") && customUrl.contains("cname=")) {
+        val liveLink = if (!customUrl.isNullOrBlank()) {
             customUrl
         } else {
-            "$base?phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
+            val sep = if (base.contains("?")) "&" else "?"
+            "$base${sep}phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
         }
         val message = """
             🙏 *નમસ્તે $customerName જી!*

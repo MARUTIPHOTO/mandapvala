@@ -36,6 +36,14 @@ class FirebaseAuthService(private val context: Context) {
         private const val KEY_CACHED_UID = "cached_uid"
         private const val KEY_CACHED_EXPIRY = "cached_expiry"
         private const val KEY_CACHED_REF_CODE = "cached_ref_code"
+        private const val KEY_IS_LOGGED_IN = "is_logged_in"
+    }
+
+    /**
+     * Checks if user has an active session or completed authentication.
+     */
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null || (prefs.getBoolean(KEY_IS_LOGGED_IN, false) && prefs.getString(KEY_CACHED_UID, null) != null)
     }
 
     /**
@@ -99,14 +107,16 @@ class FirebaseAuthService(private val context: Context) {
 
             val now = System.currentTimeMillis()
             val expiryDate = now + TRIAL_PERIOD_90_DAYS_MS
-            val uniqueReferralCode = generateUniqueReferralCode(businessName)
+            val safeName = name.trim().ifBlank { "Mandap Partner" }
+            val safeBizName = businessName.trim().ifBlank { "Shree Mandap & Decorators" }
+            val uniqueReferralCode = generateUniqueReferralCode(safeBizName)
 
             val cleanReferralInput = referredByCode?.trim()?.uppercase(Locale.getDefault())
 
             val profile = UserProfile(
                 uid = firebaseUser.uid,
-                name = name.trim(),
-                businessName = businessName.trim(),
+                name = safeName,
+                businessName = safeBizName,
                 email = email.trim(),
                 mobile = mobile.trim(),
                 registeredAt = now,
@@ -262,17 +272,45 @@ class FirebaseAuthService(private val context: Context) {
     }
 
     /**
-     * Legacy sign-in support by checking Firestore user record.
+     * Signs in with Email and Password using FirebaseAuth, with Firestore profile sync and offline fallback.
      */
     suspend fun signInWithEmail(email: String, password: String): Result<UserProfile> {
         return try {
-            val querySnapshot = firestore.collection(COLLECTION_USERS)
-                .whereEqualTo("email", email.trim())
-                .limit(1)
-                .get()
-                .await()
+            val cleanEmail = email.trim()
+            val cleanPass = password.trim()
 
-            if (!querySnapshot.isEmpty) {
+            // 1. Try Firebase Auth sign in
+            val firebaseUser = try {
+                val res = auth.signInWithEmailAndPassword(cleanEmail, cleanPass).await()
+                res.user
+            } catch (e: Exception) {
+                null
+            }
+
+            if (firebaseUser != null) {
+                val userDocRef = firestore.collection(COLLECTION_USERS).document(firebaseUser.uid)
+                val doc = try { userDocRef.get().await() } catch (e: Exception) { null }
+                val profile = if (doc != null && doc.exists()) {
+                    doc.toObject(UserProfile::class.java) ?: parseUserProfileFromSnapshot(doc)
+                } else {
+                    createDefaultProfileForUser(firebaseUser)
+                }
+                cacheProfileLocally(profile)
+                return Result.success(profile)
+            }
+
+            // 2. Query Firestore by email fallback
+            val querySnapshot = try {
+                firestore.collection(COLLECTION_USERS)
+                    .whereEqualTo("email", cleanEmail)
+                    .limit(1)
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                null
+            }
+
+            if (querySnapshot != null && !querySnapshot.isEmpty) {
                 val doc = querySnapshot.documents.first()
                 val profile = doc.toObject(UserProfile::class.java) ?: parseUserProfileFromSnapshot(doc)
                 cacheProfileLocally(profile)
@@ -282,7 +320,7 @@ class FirebaseAuthService(private val context: Context) {
                 if (local != null) {
                     Result.success(local)
                 } else {
-                    Result.failure(Exception("ઈમેલ મળ્યો નથી. કૃપા કરીને Google વડે 1-ક્લિક સાઇન ઇન કરો."))
+                    Result.failure(Exception("ઈમેલ અથવા પાસવર્ડ અમાન્ય છે. જો નવું એકાઉન્ટ હોય તો સાઇન અપ કરો."))
                 }
             }
         } catch (e: Exception) {
@@ -473,6 +511,7 @@ class FirebaseAuthService(private val context: Context) {
             .putString(KEY_CACHED_UID, profile.uid)
             .putLong(KEY_CACHED_EXPIRY, profile.expiryDate)
             .putString(KEY_CACHED_REF_CODE, profile.referralCode)
+            .putBoolean(KEY_IS_LOGGED_IN, true)
             .apply()
     }
 

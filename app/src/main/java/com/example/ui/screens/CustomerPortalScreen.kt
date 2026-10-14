@@ -22,14 +22,18 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,11 +44,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -95,6 +102,9 @@ fun CustomerPortalScreen(
     var previewItem by remember { mutableStateOf<GalleryItem?>(null) }
     var inputCustomerName by remember { mutableStateOf(customerName.ifBlank { "Customer" }) }
     var inputCustomerMobile by remember { mutableStateOf(customerMobile) }
+    var manualQtyItem by remember { mutableStateOf<GalleryItem?>(null) }
+    var manualQtyText by remember { mutableStateOf("1") }
+    var showCustomItemDialog by remember { mutableStateOf(false) }
 
     val categories = listOf("All", "Mandap", "Stage", "Flower", "Sofa", "Chair", "Lighting", "Gate", "Other")
 
@@ -329,6 +339,59 @@ fun CustomerPortalScreen(
                     }
                 }
 
+                // Add Custom Requirement / Item Manually Card
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showCustomItemDialog = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = AmberGoldSecondary.copy(alpha = 0.15f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    color = AmberGoldSecondary,
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.PlaylistAdd, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "+ ખાસ આઇટમ / ક્વોન્ટિટી જાતે ઉમેરો",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "કેટલોગ સિવાયની વસ્તુ અથવા ચોક્કસ જથ્થો લખો",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            OutlinedButton(
+                                onClick = { showCustomItemDialog = true },
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("ઉમેરો", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+
                 // Items list
                 items(filteredItems, key = { it.id }) { item ->
                     val selectedQty = selections[item.id] ?: 0
@@ -433,7 +496,7 @@ fun CustomerPortalScreen(
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            // Quantity Stepper (+ / -)
+                            // Quantity Stepper (+ / - & Manual Quantity Input)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -454,26 +517,78 @@ fun CustomerPortalScreen(
                                         }
                                     }
 
-                                    Text(
-                                        text = "$selectedQty",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 4.dp)
-                                    )
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    IconButton(
-                                        onClick = { viewModel.updatePortalItemQty(item.id, 1) },
-                                        modifier = Modifier.size(32.dp)
+                                    // Clickable quantity chip that opens Manual Quantity Dialog
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        modifier = Modifier
+                                            .clickable {
+                                                manualQtyItem = item
+                                                manualQtyText = selectedQty.toString()
+                                            }
+                                            .padding(horizontal = 2.dp)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(16.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "$selectedQty",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit quantity manually",
+                                                modifier = Modifier.size(11.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        IconButton(
+                                            onClick = { viewModel.updatePortalItemQty(item.id, 1) },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(16.dp))
+                                        }
+                                    }
+                                } else {
+                                    // Not selected yet: provide quick manual quantity input or 1-tap add
+                                    OutlinedButton(
+                                        onClick = {
+                                            manualQtyItem = item
+                                            manualQtyText = "1"
+                                        },
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Text("+ Qty", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        IconButton(
+                                            onClick = { viewModel.updatePortalItemQty(item.id, 1) },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(16.dp))
+                                        }
                                     }
                                 }
                             }
@@ -581,17 +696,31 @@ fun CustomerPortalScreen(
                                     )
                                 }
 
-                                Button(
-                                    onClick = {
-                                        viewModel.updatePortalItemQty(item.id, 1)
-                                        Toast.makeText(context, "Added to selection!", Toast.LENGTH_SHORT).show()
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = AmberGoldSecondary),
-                                    shape = RoundedCornerShape(10.dp)
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(if (currentQty > 0) "Add More ($currentQty)" else "Select Item", color = Color.Black, fontWeight = FontWeight.Bold)
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            manualQtyItem = item
+                                            manualQtyText = (if (currentQty > 0) currentQty else 1).toString()
+                                        },
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Set Qty", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            viewModel.updatePortalItemQty(item.id, 1)
+                                            Toast.makeText(context, "Added to selection!", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = AmberGoldSecondary),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(if (currentQty > 0) "+1 ($currentQty)" else "Select", color = Color.Black, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
 
@@ -608,5 +737,210 @@ fun CustomerPortalScreen(
                 }
             }
         }
+    }
+
+    // Manual Quantity Dialog for exact number input
+    manualQtyItem?.let { item ->
+        AlertDialog(
+            onDismissRequest = { manualQtyItem = null },
+            icon = {
+                Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            },
+            title = {
+                Text(
+                    text = "ક્વોન્ટિટી દાખલ કરો (Set Quantity)",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = item.title,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "${item.category} • ${if (item.price > 0) "₹%,.0f / event".format(item.price) else "Price on Request"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = manualQtyText,
+                        onValueChange = { manualQtyText = it.filter { ch -> ch.isDigit() } },
+                        label = { Text("જથ્થો / નંગ (Quantity) *") },
+                        placeholder = { Text("e.g. 50, 100, 200") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Quick Preset Quantity Chips
+                    Text(
+                        text = "ઝડપી પસંદગી (Quick Select):",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(5, 10, 25, 50, 100, 200).forEach { preset ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.clickable {
+                                    manualQtyText = preset.toString()
+                                }
+                            ) {
+                                Text(
+                                    text = "$preset",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val qty = manualQtyText.toIntOrNull() ?: 0
+                        viewModel.setPortalItemExactQty(item.id, qty)
+                        manualQtyItem = null
+                        Toast.makeText(context, "${item.title}: $qty નંગ સેટ થયા", Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Text("સેવ કરો (Save)")
+                }
+            },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if ((selections[item.id] ?: 0) > 0) {
+                        TextButton(
+                            onClick = {
+                                viewModel.setPortalItemExactQty(item.id, 0)
+                                manualQtyItem = null
+                                Toast.makeText(context, "${item.title} હટાવી દેવામાં આવી", Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
+                            Text("હટાવો", color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    TextButton(onClick = { manualQtyItem = null }) {
+                        Text("રદ કરો")
+                    }
+                }
+            }
+        )
+    }
+
+    // Custom Item Dialog
+    if (showCustomItemDialog) {
+        var customTitle by remember { mutableStateOf("") }
+        var customCategory by remember { mutableStateOf("Other") }
+        var customQtyText by remember { mutableStateOf("1") }
+        var customPriceText by remember { mutableStateOf("") }
+
+        val availCategories = listOf("Mandap", "Stage", "Flower", "Sofa", "Chair", "Lighting", "Gate", "Other")
+
+        AlertDialog(
+            onDismissRequest = { showCustomItemDialog = false },
+            icon = {
+                Icon(Icons.Default.PlaylistAdd, contentDescription = null, tint = RoyalMaroonPrimary)
+            },
+            title = {
+                Text("ખાસ આઇટમ ઉમેરો (Add Custom Item)", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedTextField(
+                        value = customTitle,
+                        onValueChange = { customTitle = it },
+                        label = { Text("આઇટમનું નામ (Item Name) *") },
+                        placeholder = { Text("e.g. VIP Chairs, 25KV Generator") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text("કેટેગરી પસંદ કરો:", style = MaterialTheme.typography.labelSmall)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(availCategories) { cat ->
+                            val sel = cat == customCategory
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (sel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.clickable { customCategory = cat }
+                            ) {
+                                Text(
+                                    text = cat,
+                                    color = if (sel) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = customQtyText,
+                            onValueChange = { customQtyText = it.filter { ch -> ch.isDigit() } },
+                            label = { Text("જથ્થો (Qty) *") },
+                            placeholder = { Text("50") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = customPriceText,
+                            onValueChange = { customPriceText = it.filter { ch -> ch.isDigit() || ch == '.' } },
+                            label = { Text("ભાવ ₹ (Optional)") },
+                            placeholder = { Text("0") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val qty = customQtyText.toIntOrNull() ?: 1
+                        val price = customPriceText.toDoubleOrNull() ?: 0.0
+                        viewModel.addCustomPortalItem(
+                            title = customTitle,
+                            category = customCategory,
+                            quantity = qty,
+                            estimatedPrice = price
+                        )
+                        showCustomItemDialog = false
+                        Toast.makeText(context, "$customTitle ($qty નંગ) ઉમેરાઈ ગઈ!", Toast.LENGTH_SHORT).show()
+                    },
+                    enabled = customTitle.isNotBlank()
+                ) {
+                    Text("ઉમેરો (Add Item)")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCustomItemDialog = false }) {
+                    Text("રદ કરો")
+                }
+            }
+        )
     }
 }

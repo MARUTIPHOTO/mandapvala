@@ -138,19 +138,19 @@ fun GalleryScreen(
     var itemToDelete by remember { mutableStateOf<GalleryItem?>(null) }
     var previewItem by remember { mutableStateOf<GalleryItem?>(null) }
 
-    // Multi-photo bulk upload state (up to 100 photos)
+    // Multi-photo bulk upload state (up to 1000 photos)
     var selectedBulkUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var showBulkUploadDialog by remember { mutableStateOf(false) }
 
     // Customer Selection Link dialog state
     var showCustomerLinkDialog by remember { mutableStateOf(false) }
 
-    // Multi-image picker launcher (up to 100 photos)
+    // Multi-image picker launcher (up to 1000 photos)
     val bulkPhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 100)
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 1000)
     ) { uris ->
         if (uris.isNotEmpty()) {
-            selectedBulkUris = uris
+            selectedBulkUris = (selectedBulkUris + uris).distinct().take(1000)
             showBulkUploadDialog = true
         }
     }
@@ -231,7 +231,7 @@ fun GalleryScreen(
                     ) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = "Upload Photos")
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Upload (1-100)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Upload (1-1000)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
 
@@ -434,7 +434,7 @@ fun GalleryScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Tap 'Upload Photos' to select up to 100 photos from your phone gallery at once!",
+                            "Tap 'Upload Photos' to select up to 1000 photos from your phone gallery at once!",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -450,7 +450,7 @@ fun GalleryScreen(
                         ) {
                             Icon(Icons.Default.AddPhotoAlternate, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Upload Photos Now (Up to 100)")
+                            Text("Upload Photos Now (Up to 1000)")
                         }
                     }
                 }
@@ -480,13 +480,18 @@ fun GalleryScreen(
         }
     }
 
-    // Bulk Upload Photos Dialog (Up to 100 photos)
+    // Bulk Upload Photos Dialog (Up to 1000 photos)
     if (showBulkUploadDialog && selectedBulkUris.isNotEmpty()) {
         BulkUploadPhotosDialog(
             uris = selectedBulkUris,
             onDismiss = {
                 showBulkUploadDialog = false
                 selectedBulkUris = emptyList()
+            },
+            onAddMorePhotos = {
+                bulkPhotoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             },
             onUploadComplete = { newItems ->
                 scope.launch {
@@ -707,13 +712,14 @@ fun GalleryItemCard(
 
 /**
  * Bulk Photo Upload Dialog:
- * Lets decorator select up to 100 photos, choose a category, base name, and default price.
+ * Lets decorator select up to 1000 photos, choose a category, base name, and default price.
  * Copies photos to local storage and creates gallery items in batch.
  */
 @Composable
 fun BulkUploadPhotosDialog(
     uris: List<Uri>,
     onDismiss: () -> Unit,
+    onAddMorePhotos: (() -> Unit)? = null,
     onUploadComplete: (List<GalleryItem>) -> Unit
 ) {
     val context = LocalContext.current
@@ -743,10 +749,22 @@ fun BulkUploadPhotosDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "${uris.size} photos selected from your device. Configure details for the batch:",
+                    text = "${uris.size} photos selected (1-1000 photos supported). Configure details:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                if (uris.size < 1000 && onAddMorePhotos != null && !isUploading) {
+                    OutlinedButton(
+                        onClick = onAddMorePhotos,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("+ વધુ ફોટો ઉમેરો (કુલ ૧૦૦૦ સુધી)")
+                    }
+                }
 
                 // Horizontal preview of selected photos
                 LazyRow(
@@ -1260,13 +1278,15 @@ fun CustomerLinkShareDialog(
     val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
     val cleanCustPhone = customerPhone.trim()
 
-    val baseCatalogUrl = "https://marutiphoto.github.io/mandapvala/"
-    val catalogLink = "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
+    val rawCatalogUrl = business.catalogUrl.trim().ifBlank { "https://marutiphoto.github.io/mandapvala/" }
+    val baseCatalogUrl = if (rawCatalogUrl.contains("?")) rawCatalogUrl else if (rawCatalogUrl.endsWith("/")) rawCatalogUrl else "$rawCatalogUrl/"
+    val sep = if (baseCatalogUrl.contains("?")) "&" else "?"
+    val catalogLink = "$baseCatalogUrl${sep}phone=$bizPhone&biz=${business.id}&cust=$customerId&cname=$encCustName&cphone=$cleanCustPhone"
 
     fun sendToWhatsApp(name: String, phone: String, id: Long) {
         val encName = try { URLEncoder.encode(name.trim(), "UTF-8") } catch (e: Exception) { name.trim() }
         val cleanPhone = phone.trim()
-        val customLink = "$baseCatalogUrl?phone=$bizPhone&biz=${business.id}&cust=$id&cname=$encName&cphone=$cleanPhone"
+        val customLink = "$baseCatalogUrl${sep}phone=$bizPhone&biz=${business.id}&cust=$id&cname=$encName&cphone=$cleanPhone"
         WhatsAppHelper.shareCustomerGalleryLink(
             context = context,
             customerName = name,

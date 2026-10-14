@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,15 +28,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddBusiness
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.AlertDialog
@@ -117,6 +122,7 @@ fun SettingsScreen(
 
     var showNewBusinessDialog by remember { mutableStateOf(false) }
     var showSwitchBusinessDialog by remember { mutableStateOf(false) }
+    var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -264,11 +270,26 @@ fun SettingsScreen(
                                     )
                                 }
                             }
-                            OutlinedButton(
-                                onClick = onNavigateToAuth,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(if (!userProfile?.email.isNullOrBlank()) "ખાતું બદલો" else "સાઇન ઇન")
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                if (userProfile != null) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.signOut()
+                                            Toast.makeText(context, "સફળતાપૂર્વક લોગ આઉટ થયા!", Toast.LENGTH_SHORT).show()
+                                            onNavigateToAuth()
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                    ) {
+                                        Text("લોગ આઉટ")
+                                    }
+                                }
+                                OutlinedButton(
+                                    onClick = onNavigateToAuth,
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(if (!userProfile?.email.isNullOrBlank()) "ખાતું બદલો" else "સાઇન ઇન")
+                                }
                             }
                         }
                     }
@@ -751,6 +772,117 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            // Privacy Policy & Google Play Compliance Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showPrivacyPolicyDialog = true }
+                        .testTag("settings_privacy_policy_card"),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    color = RoyalMaroonPrimary.copy(alpha = 0.12f),
+                                    shape = CircleShape,
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.Security,
+                                            contentDescription = "Privacy Policy",
+                                            tint = RoyalMaroonPrimary,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "પ્રાઇવસી પોલિસી (Privacy Policy)",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = "Google Play Policy & ડેટા સુરક્ષા નિયમો",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "તમારો ગ્રાહક અને બુકિંગ ડેટા Firebase માં કેવી રીતે સુરક્ષિત રહે છે અને એકાઉન્ટ ડિલીશનના નિયમો વાંચવા માટે અહીં ક્લિક કરો.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { showPrivacyPolicyDialog = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.Security, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("પોલિસી વાંચો")
+                            }
+
+                            Button(
+                                onClick = {
+                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "text/plain"
+                                        putExtra(Intent.EXTRA_SUBJECT, "MandapVala - Privacy Policy")
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "MandapVala App - Privacy Policy & Data Safety:\n" +
+                                            "• App: MandapVala by Maruti Photo\n" +
+                                            "• Contact: marutiphoto1234@gmail.com\n" +
+                                            "• Secure Firebase Cloud Database & Authentication\n" +
+                                            "• Business Data Isolation (Strictly Private)\n" +
+                                            "• Account & Data Deletion Supported\n" +
+                                            "Catalog Link: ${currentBiz.catalogUrl.ifBlank { "https://marutiphoto.github.io/mandapvala/" }}"
+                                        )
+                                    }
+                                    context.startActivity(Intent.createChooser(shareIntent, "Share Privacy Policy"))
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = RoyalMaroonPrimary),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("શેર કરો")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -868,6 +1000,182 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showSwitchBusinessDialog = false }) { Text("Close") }
+            }
+        )
+    }
+
+    // Privacy Policy Dialog (Google Play Compliant)
+    if (showPrivacyPolicyDialog) {
+        val policyText = """
+MandapVala - Privacy Policy & Data Safety
+Effective Date: October 14, 2026
+App Developer: Maruti Photo & Software Team
+Contact: marutiphoto1234@gmail.com
+
+1. Information We Collect:
+- Business Profile: Name, Mobile, WhatsApp, Address, UPI ID, GST No.
+- Client & Booking Records: Customer names, event dates, venues, decoration selections, bill totals.
+- Account Credentials: Email & User ID via Firebase Authentication & Google Sign-In.
+
+2. How We Use Information:
+- Provide event calendar management, prevent double bookings, generate bills/PDFs, and sync data securely across devices.
+- We DO NOT sell, rent, or trade your personal or business data to any third-party advertisers.
+
+3. Third-Party Services:
+- Google Play Services (Core Android features)
+- Google Firebase Authentication (Secure 1-click & email login)
+- Google Cloud Firestore (Secure real-time cloud database)
+
+4. Security & Isolation:
+- Each mandap owner's data is isolated and protected with zero-trust security rules.
+- All cloud communications are encrypted via SSL/TLS.
+
+5. Account & Data Deletion (Google Play Policy):
+- You have the right to request deletion of your account and all data at any time.
+- Send an email to marutiphoto1234@gmail.com with subject "Account Deletion Request - MandapVala". All your data will be permanently wiped within 30 days.
+
+Website: https://marutiphoto.github.io/mandapvala/
+        """.trimIndent()
+
+        AlertDialog(
+            onDismissRequest = { showPrivacyPolicyDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = "Privacy Policy",
+                    tint = RoyalMaroonPrimary,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "પ્રાઇવસી પોલિસી (Privacy Policy)",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item {
+                        Surface(
+                            color = RoyalMaroonPrimary.copy(alpha = 0.08f),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Text(
+                                    text = "MandapVala • Maruti Photo Team",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = RoyalMaroonPrimary
+                                )
+                                Text(
+                                    text = "સંપર્ક ઈમેલ: marutiphoto1234@gmail.com\nGoogle Play Store કમ્પ્લાયન્ટ પોલિસી",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = "૧. અમે કયો ડેટા સાચવીએ છીએ?",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "• તમારું નામ, પેઢીનું નામ, મોબાઈલ નંબર અને ઈમેલ.\n• ગ્રાહકોની વિગતો, ઇવેન્ટ તારીખો, ભાડાની રકમ અને ડેકોરેશન આઇટમ્સ.\n• બિલ/ઇન્વૉઇસ અને પેમેન્ટ સ્ટેટસ.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "૨. ડેટાનો ઉપયોગ કેવી રીતે થાય છે?",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "• ડબલ બુકિંગ અટકાવવા અને તારીખોનું મેનેજમેન્ટ કરવા.\n• ગ્રાહકો માટે સુંદર PDF બિલ અને કેટલોગ લિંક બનાવવા.\n• ગૂગલ ફાયરબેઝ (Firebase) ક્લાઉડમાં સુરક્ષિત બેકઅપ રાખવા.\n• અમે કોઈપણ યુઝરનો ડેટા ક્યારેય વેચતા નથી કે એડવર્ટાઇઝિંગ માટે આપતા નથી.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "૩. સુરક્ષા અને સિક્યોરિટી (Data Privacy)",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "• દરેક મંડપવાળાનો ડેટા સંપૂર્ણપણે અલગ અને પ્રાઇવેટ રહે છે. અન્ય કોઈ પણ વ્યક્તિ તમારો ડેટા જોઈ શકતી નથી.\n• તમામ ડેટા ટ્રાન્સફર SSL/TLS એન્ક્રિપ્શનથી સુરક્ષિત છે.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "૪. એકાઉન્ટ અને ડેટા ડિલીટ કરવાનો હક (Data Deletion)",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "• ગૂગલ પ્લે સ્ટોરના નિયમ મુજબ તમે કોઈપણ સમયે તમારું ખાતું અને ડેટા કાયમી ડિલીટ કરાવી શકો છો.\n• આ માટે marutiphoto1234@gmail.com પર ઈમેલ કરવાથી ૩૦ દિવસમાં બધો જ ડેટા સર્વર પરથી સંપૂર્ણ ભૂંસી નાખવામાં આવશે.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TextButton(
+                        onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("MandapVala Privacy Policy", policyText))
+                            Toast.makeText(context, "પ્રાઇવસી પોલિસી કોપી થઈ ગઈ!", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("કોપી")
+                    }
+
+                    Button(
+                        onClick = {
+                            try {
+                                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:marutiphoto1234@gmail.com?subject=Privacy%20Policy%20Inquiry%20-%20MandapVala")
+                                }
+                                context.startActivity(emailIntent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Email: marutiphoto1234@gmail.com", Toast.LENGTH_LONG).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = RoyalMaroonPrimary)
+                    ) {
+                        Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("સંપર્ક ઈમેલ")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPrivacyPolicyDialog = false }) {
+                    Text("બંધ કરો")
+                }
             }
         )
     }

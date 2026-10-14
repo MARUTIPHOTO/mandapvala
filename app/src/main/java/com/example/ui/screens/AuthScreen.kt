@@ -495,47 +495,7 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (selectedTabIndex == 0) {
-                // SIGN UP FORM
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("તમારું નામ (Owner Name) *") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("input_signup_name")
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                OutlinedTextField(
-                    value = businessName,
-                    onValueChange = { businessName = it },
-                    label = { Text("મંડપ / ડેકોરેશન ફર્મનું નામ *") },
-                    leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("input_signup_biz")
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                OutlinedTextField(
-                    value = mobile,
-                    onValueChange = { mobile = it },
-                    label = { Text("મોબાઈલ નંબર *") },
-                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("input_signup_mobile")
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
+                // SIMPLE SIGN UP FORM
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -553,7 +513,7 @@ fun AuthScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("પાસવર્ડ (Password) *") },
+                    label = { Text("પાસવર્ડ (Password - ઓછામાં ઓછા 6 અક્ષર) *") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     trailingIcon = {
                         IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
@@ -571,12 +531,39 @@ fun AuthScreen(
                         .testTag("input_signup_password")
                 )
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = businessName,
+                    onValueChange = { businessName = it },
+                    label = { Text("મંડપ / ફર્મનું નામ (વૈકલ્પિક - Optional)") },
+                    leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
+                    singleLine = true,
+                    placeholder = { Text("શ્રી મંડપ & ડેકોરેટર્સ") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("input_signup_biz")
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = referralCode,
+                    onValueChange = { referralCode = it },
+                    label = { Text("રેફરલ કોડ (જો હોય તો - વૈકલ્પિક)") },
+                    leadingIcon = { Icon(Icons.Default.CardGiftcard, contentDescription = null) },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("input_signup_refcode")
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {
-                        if (name.isBlank() || businessName.isBlank() || email.isBlank() || password.isBlank() || mobile.isBlank()) {
-                            errorMessage = "કૃપા કરીને તમામ જરૂરી વિગતો ભરો."
+                        if (email.isBlank() || password.isBlank()) {
+                            errorMessage = "કૃપા કરીને ઈમેલ અને પાસવર્ડ દાખલ કરો."
                             return@Button
                         }
                         if (password.length < 6) {
@@ -587,17 +574,20 @@ fun AuthScreen(
                         errorMessage = null
                         focusManager.clearFocus()
 
+                        val safeName = name.ifBlank { "Mandap Partner" }
+                        val safeBiz = businessName.ifBlank { "Shree Mandap & Decorators" }
+
                         viewModel.signUp(
-                            name = name,
-                            businessName = businessName,
-                            email = email,
-                            password = password,
-                            mobile = mobile,
+                            name = safeName,
+                            businessName = safeBiz,
+                            email = email.trim(),
+                            password = password.trim(),
+                            mobile = mobile.trim(),
                             referralCode = referralCode.ifBlank { null }
                         ) { result ->
                             isLoading = false
                             result.onSuccess {
-                                Toast.makeText(context, "એકાઉન્ટ સફળતાપૂર્વક બન્યું! 90 દિવસ ટ્રાયલ શરૂ થઈ.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "એકાઉન્ટ સફળતાપૂર્વક બન્યું! 90 દિવસ ફ્રી ટ્રાયલ શરૂ થઈ.", Toast.LENGTH_LONG).show()
                                 onAuthSuccess()
                             }.onFailure { err ->
                                 errorMessage = err.message ?: "નોંધણી નિષ્ફળ રહી. કૃપા કરીને ફરી પ્રયાસ કરો."
@@ -617,11 +607,15 @@ fun AuthScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     } else {
-                        Text(
-                            text = "90 દિવસ ફ્રી ટ્રાયલ સાથે શરૂ કરો",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "90 દિવસ ફ્રી ટ્રાયલ સાથે એકાઉન્ટ બનાવો",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 

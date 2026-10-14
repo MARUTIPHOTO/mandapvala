@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -209,14 +210,17 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
         }
-        // Ensure active business has the new GitHub Pages catalog URL configured
+        // Set default catalog URL once if empty on clean install without overriding user settings
         viewModelScope.launch {
-            repository.getActiveBusiness().collect { biz ->
-                if (biz != null && (biz.catalogUrl.isBlank() || biz.catalogUrl.contains("mandapvala.in") || biz.catalogUrl.contains("web.app"))) {
-                    repository.saveBusiness(biz.copy(catalogUrl = "https://marutiphoto.github.io/mandapvala/"))
-                }
+            val biz = repository.getActiveBusiness().firstOrNull()
+            if (biz != null && biz.catalogUrl.isBlank()) {
+                repository.saveBusiness(biz.copy(catalogUrl = "https://marutiphoto.github.io/mandapvala/"))
             }
         }
+    }
+
+    fun isUserLoggedIn(): Boolean {
+        return authService.isUserLoggedIn()
     }
 
     fun toggleDarkTheme(enable: Boolean) {
@@ -665,6 +669,39 @@ class MandapViewModel(application: Application) : AndroidViewModel(application) 
             current[itemId] = count
         }
         _portalSelection.value = current
+    }
+
+    /**
+     * Manually set exact quantity for an item in the Customer Selection Portal
+     */
+    fun setPortalItemExactQty(itemId: Long, exactQty: Int) {
+        val current = _portalSelection.value.toMutableMap()
+        if (exactQty <= 0) {
+            current.remove(itemId)
+        } else {
+            current[itemId] = exactQty
+        }
+        _portalSelection.value = current
+    }
+
+    /**
+     * Allow customer or decorator to manually add a custom item and its quantity
+     * directly into the selection portal.
+     */
+    fun addCustomPortalItem(title: String, category: String, quantity: Int, estimatedPrice: Double = 0.0) {
+        viewModelScope.launch {
+            val cleanTitle = title.trim()
+            if (cleanTitle.isBlank()) return@launch
+            val newItem = GalleryItem(
+                title = cleanTitle,
+                category = category.trim().ifBlank { "Other" },
+                price = estimatedPrice,
+                availableQuantity = quantity,
+                description = "Custom customer item / requirement"
+            )
+            val insertedId = repository.saveGalleryItem(newItem)
+            setPortalItemExactQty(insertedId, quantity)
+        }
     }
 
     fun submitCustomerSelection(

@@ -22,15 +22,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -97,6 +100,8 @@ fun BillEditScreen(
 
     var showCustomerPicker by remember { mutableStateOf(false) }
     var showGalleryPicker by remember { mutableStateOf(false) }
+    var manualQtyIndex by remember { mutableStateOf<Int?>(null) }
+    var manualQtyDraftText by remember { mutableStateOf("1") }
 
     var discountInput by remember(draft.discount) {
         mutableStateOf(if (draft.discount > 0) "%.0f".format(draft.discount) else "")
@@ -440,12 +445,35 @@ fun BillEditScreen(
                                     }
                                 }
 
-                                Text(
-                                    text = "${item.quantity}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 4.dp)
-                                )
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier
+                                        .clickable {
+                                            manualQtyIndex = index
+                                            manualQtyDraftText = item.quantity.toString()
+                                        }
+                                        .padding(horizontal = 2.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "${item.quantity}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit quantity manually",
+                                            modifier = Modifier.size(11.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
 
                                 Box(
                                     modifier = Modifier
@@ -711,5 +739,88 @@ fun BillEditScreen(
                 }
             }
         )
+    }
+
+    // Manual Quantity Edit Dialog for Bill Draft
+    manualQtyIndex?.let { index ->
+        val item = draft.items.getOrNull(index)
+        if (item != null) {
+            AlertDialog(
+                onDismissRequest = { manualQtyIndex = null },
+                icon = {
+                    Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                },
+                title = {
+                    Text("ક્વોન્ટિટી દાખલ કરો (Set Quantity)", fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = item.title,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "${item.category} • ₹%,.0f / નંગ".format(item.price),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        OutlinedTextField(
+                            value = manualQtyDraftText,
+                            onValueChange = { manualQtyDraftText = it.filter { ch -> ch.isDigit() } },
+                            label = { Text("જથ્થો / નંગ (Quantity) *") },
+                            placeholder = { Text("e.g. 50, 100") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Quick Select Chips
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(5, 10, 25, 50, 100, 200).forEach { preset ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.clickable {
+                                        manualQtyDraftText = preset.toString()
+                                    }
+                                ) {
+                                    Text(
+                                        text = "$preset",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val newQty = manualQtyDraftText.toIntOrNull() ?: 1
+                            viewModel.updateDraftItemQuantity(index, newQty)
+                            manualQtyIndex = null
+                            Toast.makeText(context, "${item.title}: $newQty નંગ સેટ થયા", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Text("સેવ કરો (Save)")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { manualQtyIndex = null }) {
+                        Text("રદ કરો")
+                    }
+                }
+            )
+        }
     }
 }
