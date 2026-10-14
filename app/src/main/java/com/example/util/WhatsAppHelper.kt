@@ -58,7 +58,9 @@ object WhatsAppHelper {
         val rawBase = business.catalogUrl.trim().ifBlank { "https://marutiphoto.github.io/mandapvala/" }
         val base = if (rawBase.contains("?")) rawBase else if (rawBase.endsWith("/")) rawBase else "$rawBase/"
         val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
-        val cleanCustPhone = customerMobile.trim()
+        val cleanCustPhone = customerMobile.replace("[^0-9]".toRegex(), "").ifBlank {
+            try { URLEncoder.encode(customerMobile.trim(), "UTF-8") } catch (e: Exception) { "" }
+        }
 
         val liveLink = if (!customUrl.isNullOrBlank()) {
             customUrl

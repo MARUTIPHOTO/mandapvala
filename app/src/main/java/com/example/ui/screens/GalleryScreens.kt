@@ -1276,7 +1276,9 @@ fun CustomerLinkShareDialog(
     val bizPhone = business.whatsapp.ifBlank { business.mobile }.replace("[^0-9]".toRegex(), "")
 
     val encCustName = try { URLEncoder.encode(customerName.trim(), "UTF-8") } catch (e: Exception) { customerName.trim() }
-    val cleanCustPhone = customerPhone.trim()
+    val cleanCustPhone = customerPhone.replace("[^0-9]".toRegex(), "").ifBlank {
+        try { URLEncoder.encode(customerPhone.trim(), "UTF-8") } catch (e: Exception) { "" }
+    }
 
     val rawCatalogUrl = business.catalogUrl.trim().ifBlank { "https://marutiphoto.github.io/mandapvala/" }
     val baseCatalogUrl = if (rawCatalogUrl.contains("?")) rawCatalogUrl else if (rawCatalogUrl.endsWith("/")) rawCatalogUrl else "$rawCatalogUrl/"
@@ -1285,7 +1287,9 @@ fun CustomerLinkShareDialog(
 
     fun sendToWhatsApp(name: String, phone: String, id: Long) {
         val encName = try { URLEncoder.encode(name.trim(), "UTF-8") } catch (e: Exception) { name.trim() }
-        val cleanPhone = phone.trim()
+        val cleanPhone = phone.replace("[^0-9]".toRegex(), "").ifBlank {
+            try { URLEncoder.encode(phone.trim(), "UTF-8") } catch (e: Exception) { "" }
+        }
         val customLink = "$baseCatalogUrl${sep}phone=$bizPhone&biz=${business.id}&cust=$id&cname=$encName&cphone=$cleanPhone"
         WhatsAppHelper.shareCustomerGalleryLink(
             context = context,

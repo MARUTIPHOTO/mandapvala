@@ -59,6 +59,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -137,6 +140,9 @@ fun AuthScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                }
                 .verticalScroll(scrollState)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -267,6 +273,8 @@ fun AuthScreen(
                         label = { Text("મિત્રનો રેફરલ કોડ (જો હોય તો - વૈકલ્પિક)") },
                         leadingIcon = { Icon(Icons.Default.CardGiftcard, contentDescription = null) },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("input_google_referral_code")
@@ -276,6 +284,7 @@ fun AuthScreen(
 
                     Button(
                         onClick = {
+                            focusManager.clearFocus()
                             val activity = context as? Activity
                             if (activity == null) {
                                 errorMessage = "Activity context is required for Google Sign-In."
@@ -351,6 +360,7 @@ fun AuthScreen(
                     // Secondary Quick 1-Click Trial Button (No password, zero friction)
                     OutlinedButton(
                         onClick = {
+                            focusManager.clearFocus()
                             isLoading = true
                             errorMessage = null
                             viewModel.quickStartTrial(
@@ -391,7 +401,10 @@ fun AuthScreen(
 
                     // Skip for now button
                     TextButton(
-                        onClick = onSkip,
+                        onClick = {
+                            focusManager.clearFocus()
+                            onSkip()
+                        },
                         modifier = Modifier.testTag("btn_auth_skip_to_home")
                     ) {
                         Text(
@@ -426,6 +439,7 @@ fun AuthScreen(
                         ) {
                             Button(
                                 onClick = {
+                                    focusManager.clearFocus()
                                     isLoading = true
                                     errorMessage = null
                                     viewModel.quickStartTrial(
@@ -441,7 +455,10 @@ fun AuthScreen(
                             ) {
                                 Text("ઝડપી સાઇન ઇનથી આગળ વધો")
                             }
-                            TextButton(onClick = onSkip) {
+                            TextButton(onClick = {
+                                focusManager.clearFocus()
+                                onSkip()
+                            }) {
                                 Text("સ્કીપ કરો", color = MaterialTheme.colorScheme.onErrorContainer)
                             }
                         }
@@ -475,6 +492,7 @@ fun AuthScreen(
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = {
+                        focusManager.clearFocus()
                         selectedTabIndex = 0
                         errorMessage = null
                     },
@@ -484,6 +502,7 @@ fun AuthScreen(
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = {
+                        focusManager.clearFocus()
                         selectedTabIndex = 1
                         errorMessage = null
                     },
@@ -502,7 +521,8 @@ fun AuthScreen(
                     label = { Text("ઈમેલ (Email) *") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_signup_email")
@@ -525,7 +545,8 @@ fun AuthScreen(
                     },
                     visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_signup_password")
@@ -540,6 +561,8 @@ fun AuthScreen(
                     leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
                     singleLine = true,
                     placeholder = { Text("શ્રી મંડપ & ડેકોરેટર્સ") },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_signup_biz")
@@ -553,6 +576,8 @@ fun AuthScreen(
                     label = { Text("રેફરલ કોડ (જો હોય તો - વૈકલ્પિક)") },
                     leadingIcon = { Icon(Icons.Default.CardGiftcard, contentDescription = null) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_signup_refcode")

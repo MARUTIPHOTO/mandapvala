@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -92,6 +93,7 @@ fun CustomerPortalScreen(
     onNavigateToBillDraft: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val business by viewModel.activeBusiness.collectAsStateWithLifecycle()
     val galleryItems by viewModel.galleryItems.collectAsStateWithLifecycle()
     val selections by viewModel.portalSelection.collectAsStateWithLifecycle()
@@ -742,7 +744,10 @@ fun CustomerPortalScreen(
     // Manual Quantity Dialog for exact number input
     manualQtyItem?.let { item ->
         AlertDialog(
-            onDismissRequest = { manualQtyItem = null },
+            onDismissRequest = {
+                focusManager.clearFocus()
+                manualQtyItem = null
+            },
             icon = {
                 Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             },
@@ -811,6 +816,7 @@ fun CustomerPortalScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        focusManager.clearFocus()
                         val qty = manualQtyText.toIntOrNull() ?: 0
                         viewModel.setPortalItemExactQty(item.id, qty)
                         manualQtyItem = null
@@ -825,6 +831,7 @@ fun CustomerPortalScreen(
                     if ((selections[item.id] ?: 0) > 0) {
                         TextButton(
                             onClick = {
+                                focusManager.clearFocus()
                                 viewModel.setPortalItemExactQty(item.id, 0)
                                 manualQtyItem = null
                                 Toast.makeText(context, "${item.title} હટાવી દેવામાં આવી", Toast.LENGTH_SHORT).show()
@@ -833,7 +840,10 @@ fun CustomerPortalScreen(
                             Text("હટાવો", color = MaterialTheme.colorScheme.error)
                         }
                     }
-                    TextButton(onClick = { manualQtyItem = null }) {
+                    TextButton(onClick = {
+                        focusManager.clearFocus()
+                        manualQtyItem = null
+                    }) {
                         Text("રદ કરો")
                     }
                 }
@@ -851,7 +861,10 @@ fun CustomerPortalScreen(
         val availCategories = listOf("Mandap", "Stage", "Flower", "Sofa", "Chair", "Lighting", "Gate", "Other")
 
         AlertDialog(
-            onDismissRequest = { showCustomItemDialog = false },
+            onDismissRequest = {
+                focusManager.clearFocus()
+                showCustomItemDialog = false
+            },
             icon = {
                 Icon(Icons.Default.PlaylistAdd, contentDescription = null, tint = RoyalMaroonPrimary)
             },
@@ -920,6 +933,7 @@ fun CustomerPortalScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        focusManager.clearFocus()
                         val qty = customQtyText.toIntOrNull() ?: 1
                         val price = customPriceText.toDoubleOrNull() ?: 0.0
                         viewModel.addCustomPortalItem(
@@ -937,7 +951,10 @@ fun CustomerPortalScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showCustomItemDialog = false }) {
+                TextButton(onClick = {
+                    focusManager.clearFocus()
+                    showCustomItemDialog = false
+                }) {
                     Text("રદ કરો")
                 }
             }

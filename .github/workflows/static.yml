@@ -36,7 +36,12 @@ jobs:
       - name: Prepare Static Site
         run: |
           mkdir -p _site
-          cp -r index.html catalog.html gallery.html images view _site/
+          cp -r index.html _site/
+          [ -d images ] && cp -r images _site/ || true
+          [ -d view ] && cp -r view _site/ || true
+          [ -d public ] && cp -r public _site/ || true
+          [ -f catalog.html ] && cp catalog.html _site/ || true
+          [ -f gallery.html ] && cp gallery.html _site/ || true
           [ -f MandapVala.apk ] && cp MandapVala.apk _site/ || true
           [ -f MandapVala.aab ] && cp MandapVala.aab _site/ || true
           touch _site/.nojekyll
