@@ -110,9 +110,26 @@ fun MandapApp(viewModel: MandapViewModel) {
         }
     }
 
-    // Redirect to Subscription Required screen if trial has expired and user is not subscribed
-    LaunchedEffect(isAccessBlocked) {
-        if (isAccessBlocked) {
+    // Handle deep link from intent directly to open Customer Selection Portal
+    LaunchedEffect(Unit) {
+        val intentData = (context as? android.app.Activity)?.intent?.data
+        if (intentData != null) {
+            val host = intentData.host ?: ""
+            val path = intentData.path ?: ""
+            if (host.contains("marutiphoto.github.io") && path.startsWith("/mandapvala")) {
+                val custId = intentData.getQueryParameter("cust")?.toLongOrNull() ?: 0L
+                val cname = intentData.getQueryParameter("cname") ?: intentData.getQueryParameter("name") ?: "Customer"
+                val cphone = intentData.getQueryParameter("cphone") ?: ""
+                navController.navigate(Screen.CustomerPortal.createRoute(custId, cname, cphone)) {
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
+    // Redirect to Subscription Required screen if trial has expired and user is not subscribed (exempt Customer Portal)
+    LaunchedEffect(isAccessBlocked, currentRoute) {
+        if (isAccessBlocked && currentRoute?.startsWith("customer_portal") != true) {
             navController.navigate(Screen.SubscriptionRequired.route) {
                 popUpTo(0) { inclusive = true }
                 launchSingleTop = true
@@ -280,6 +297,8 @@ fun MandapApp(viewModel: MandapViewModel) {
                     navArgument("biz") { type = NavType.StringType; defaultValue = "" }
                 ),
                 deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala.*" },
+                    navDeepLink { uriPattern = "http://marutiphoto.github.io/mandapvala.*" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala/?phone={phone}&biz={biz}&cust={customerId}" },
                     navDeepLink { uriPattern = "https://marutiphoto.github.io/mandapvala?phone={phone}&biz={biz}&cust={customerId}&cname={cname}&cphone={cphone}" },
