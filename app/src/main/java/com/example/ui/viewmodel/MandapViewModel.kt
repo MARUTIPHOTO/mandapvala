@@ -42,7 +42,7 @@ import java.util.Locale
 class MandapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: MandapRepository
-    private val firebaseOrderService = FirebaseOrderService()
+    private val firebaseOrderService = FirebaseOrderService(application)
     private val billingManager: BillingManager = BillingManager.getInstance(application)
     val authService = FirebaseAuthService(application)
     private val activeBizId = "biz_default"

@@ -264,7 +264,7 @@ fun SettingsScreen(
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
-                                        text = userProfile?.email?.ifBlank { null } ?: "1-ક્લિકમાં Google સાઇન ઇન કરો",
+                                        text = userProfile?.email?.ifBlank { null } ?: "Google વડે સાઇન ઇન કરો",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )

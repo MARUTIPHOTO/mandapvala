@@ -7,13 +7,37 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
+import android.content.Context
+import com.example.R
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-class FirebaseOrderService {
+class FirebaseOrderService(private val context: Context? = null) {
 
     private val firestore: FirebaseFirestore by lazy {
-        FirebaseFirestore.getInstance()
+        val customDbId = try {
+            context?.getString(R.string.firestore_database_id)?.trim()?.takeIf { it.isNotBlank() && it != "(default)" }
+        } catch (e: Exception) {
+            null
+        }
+
+        if (customDbId != null) {
+            try {
+                Log.d(TAG, "Initializing Firestore with custom databaseId: $customDbId")
+                val app = try { FirebaseApp.getInstance() } catch (e: Exception) { null }
+                if (app != null) {
+                    FirebaseFirestore.getInstance(app, customDbId)
+                } else {
+                    FirebaseFirestore.getInstance(customDbId)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to connect to custom database $customDbId, falling back to default", e)
+                FirebaseFirestore.getInstance()
+            }
+        } else {
+            FirebaseFirestore.getInstance()
+        }
     }
 
     companion object {
@@ -26,7 +50,7 @@ class FirebaseOrderService {
         val registration = firestore.collection(COLLECTION_ORDERS)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e(TAG, "Error listening to CustomerOrders: ${error.message}", error)
+                    Log.w(TAG, "CustomerOrders listener notice: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }

@@ -280,13 +280,13 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Google વડે 1-ક્લિક સાઇન ઇન",
+                                    text = "Google દ્વારા સાઇન ઇન કરો",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    text = "ડેટા ક્લાઉડ સુરક્ષિત રાખો & 90 દિવસ ફ્રી ટ્રાયલ મેળવો",
+                                    text = "તમારા Google એકાઉન્ટ વડે ડેટા ક્લાઉડમાં સુરક્ષિત રાખો",
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                 )

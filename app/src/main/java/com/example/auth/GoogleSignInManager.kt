@@ -122,7 +122,7 @@ object GoogleSignInManager {
                 if (msg.contains("16:") || msg.contains("cancel", ignoreCase = true)) {
                     onCancelled()
                 } else if (msg.contains("10:") || msg.contains("Developer", ignoreCase = true)) {
-                    onError("Google Sign-In [Developer Error 10]: Firebase Console માં આ એપનું SHA-1 ફિંગરપ્રિન્ટ રજીસ્ટર કરવું જરૂરી છે. તમે નીચે આપેલા 'ઝડપી 1-ક્લિક સાઇન ઇન' વડે સીધું ચાલુ કરી શકો છો.")
+                    onError("Google Sign-In [Developer Error 10]: Firebase Console માં આ એપનું SHA-1 ફિંગરપ્રિન્ટ રજીસ્ટર કરવું જરૂરી છે. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો અથવા ઈમેલ લોગિન વાપરો.")
                 } else {
                     onError("Google Sign-In એરર: $msg")
                 }

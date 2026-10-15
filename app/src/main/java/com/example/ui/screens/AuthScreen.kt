@@ -85,7 +85,6 @@ import com.example.ui.viewmodel.MandapViewModel
 fun AuthScreen(
     viewModel: MandapViewModel,
     onAuthSuccess: () -> Unit,
-    onSkip: () -> Unit = onAuthSuccess,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -182,53 +181,72 @@ fun AuthScreen(
 
             // 90-Day Free Trial Highlight Badge
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = "🎁 90 દિવસ તદ્દન મફત ટ્રાયલ",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Text(
-                            text = "તમામ સુવિધાઓ 90 દિવસ ફ્રી! કોઈ પાસવર્ડ કે OTP વગર સીધા 1-ક્લિકમાં શરૂ કરો.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "🎁 90 દિવસ તદ્દન મફત ટ્રાયલ (Free Trial)",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "ત્યારબાદ માત્ર ₹149 / 1 વર્ષ (વાર્ષિક સબ્સ્ક્રિપ્શન)",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "✓ અનલિમિટેડ ઓર્ડર બુકિંગ  •  ✓ 1000+ ફોટો કેટલોગ  •  ✓ WhatsApp બિલિંગ",
+                        fontSize = 11.5.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
             // ==========================================
-            // PRIMARY HERO: ONE-TAP GOOGLE SIGN-IN CARD
+            // PRIMARY HERO: ONE-CLICK PASSWORDLESS SIGN-IN
             // ==========================================
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(20.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp,
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                tonalElevation = 6.dp,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("card_google_one_tap")
             ) {
                 Column(
-                    modifier = Modifier.padding(18.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -238,13 +256,13 @@ fun AuthScreen(
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(44.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
                                     text = "G",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -253,13 +271,14 @@ fun AuthScreen(
                         Column {
                             Text(
                                 text = "Google વડે 1-ક્લિક સાઇન ઇન",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "પાસવર્ડ કે OTP વગર • સીધા ઈમેલથી",
+                                text = "પાસવર્ડ કે OTP વગર • માત્ર 1 સેકન્ડમાં શરૂ કરો",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
@@ -322,10 +341,10 @@ fun AuthScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
+                            .height(56.dp)
                             .testTag("btn_google_signin"),
                         enabled = !isLoading
                     ) {
@@ -339,16 +358,16 @@ fun AuthScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Text(
-                                    text = "G",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onPrimary
+                                Icon(
+                                    imageVector = Icons.Default.Bolt,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(22.dp)
                                 )
-                                Spacer(modifier = Modifier.width(10.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Google એકાઉન્ટથી સાઇન ઇન કરો",
-                                    fontSize = 15.sp,
+                                    text = "Google વડે 1-ક્લિક સાઇન ઇન કરો",
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -356,63 +375,12 @@ fun AuthScreen(
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
-
-                    // Secondary Quick 1-Click Trial Button (No password, zero friction)
-                    OutlinedButton(
-                        onClick = {
-                            focusManager.clearFocus()
-                            isLoading = true
-                            errorMessage = null
-                            viewModel.quickStartTrial(
-                                name = "Mandap Partner",
-                                businessName = "Shree Mandap & Decorators",
-                                referralCode = referralCode.ifBlank { null }
-                            ) { result ->
-                                isLoading = false
-                                result.onSuccess {
-                                    Toast.makeText(context, "90 દિવસ ફ્રી ટ્રાયલ સફળતાપૂર્વક શરૂ થઈ!", Toast.LENGTH_SHORT).show()
-                                    onAuthSuccess()
-                                }.onFailure { err ->
-                                    errorMessage = err.message ?: "સાઇન ઇન નિષ્ફળ."
-                                }
-                            }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .testTag("btn_quick_trial_signin"),
-                        enabled = !isLoading
-                    ) {
-                        Icon(Icons.Default.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("ઝડપી 1-ક્લિક શરૂ કરો (પાસવર્ડ વગર)", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "⚡ એક ક્લિકમાં 90 દિવસ ફ્રી ટ્રાયલ આપોઆપ શરૂ થઈ જશે",
+                        text = "🔒 સુરક્ષિત લોગિન: કોઈ પાસવર્ડ યાદ રાખવાની જરૂર નથી • 100% સુરક્ષિત",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Skip for now button
-                    TextButton(
-                        onClick = {
-                            focusManager.clearFocus()
-                            onSkip()
-                        },
-                        modifier = Modifier.testTag("btn_auth_skip_to_home")
-                    ) {
-                        Text(
-                            text = "અત્યારે સ્કીપ કરો (ગેસ્ટ તરીકે આગળ વધો) →",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
 
@@ -433,34 +401,15 @@ fun AuthScreen(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Button(
-                                onClick = {
-                                    focusManager.clearFocus()
-                                    isLoading = true
-                                    errorMessage = null
-                                    viewModel.quickStartTrial(
-                                        name = "Mandap Partner",
-                                        businessName = "Shree Mandap & Decorators"
-                                    ) { result ->
-                                        isLoading = false
-                                        result.onSuccess { onAuthSuccess() }
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                modifier = Modifier.testTag("btn_error_quick_continue")
-                            ) {
-                                Text("ઝડપી સાઇન ઇનથી આગળ વધો")
-                            }
-                            TextButton(onClick = {
+                        Button(
+                            onClick = {
                                 focusManager.clearFocus()
-                                onSkip()
-                            }) {
-                                Text("સ્કીપ કરો", color = MaterialTheme.colorScheme.onErrorContainer)
-                            }
+                                errorMessage = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            modifier = Modifier.testTag("btn_error_dismiss")
+                        ) {
+                            Text("ફરી પ્રયાસ કરો (Try Again)")
                         }
                     }
                 }
@@ -475,7 +424,7 @@ fun AuthScreen(
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f))
                 Text(
-                    text = "  અથવા મેન્યુઅલ રજીસ્ટ્રેશન  ",
+                    text = "  અથવા ઈમેલ વડે મેન્યુઅલ લોગિન (વૈકલ્પિક)  ",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

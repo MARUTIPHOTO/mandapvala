@@ -19,7 +19,27 @@ import java.util.Locale
 class FirebaseAuthService(private val context: Context) {
 
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
+    private val firestore: FirebaseFirestore by lazy {
+        val customDbId = try {
+            context.getString(com.example.R.string.firestore_database_id)?.trim()?.takeIf { it.isNotBlank() && it != "(default)" }
+        } catch (e: Exception) {
+            null
+        }
+        if (customDbId != null) {
+            try {
+                val app = try { com.google.firebase.FirebaseApp.getInstance() } catch (e: Exception) { null }
+                if (app != null) {
+                    FirebaseFirestore.getInstance(app, customDbId)
+                } else {
+                    FirebaseFirestore.getInstance(customDbId)
+                }
+            } catch (e: Exception) {
+                FirebaseFirestore.getInstance()
+            }
+        } else {
+            FirebaseFirestore.getInstance()
+        }
+    }
     private val prefs: SharedPreferences = context.getSharedPreferences("mandap_user_prefs", Context.MODE_PRIVATE)
 
     companion object {
@@ -43,7 +63,7 @@ class FirebaseAuthService(private val context: Context) {
      * Checks if user has an active session or completed authentication.
      */
     fun isUserLoggedIn(): Boolean {
-        return auth.currentUser != null || (prefs.getBoolean(KEY_IS_LOGGED_IN, false) && prefs.getString(KEY_CACHED_UID, null) != null)
+        return auth.currentUser != null
     }
 
     /**
@@ -52,13 +72,11 @@ class FirebaseAuthService(private val context: Context) {
     fun observeCurrentUser(): Flow<UserProfile?> = callbackFlow {
         val currentFirebaseUser = auth.currentUser
         if (currentFirebaseUser == null) {
-            // Check local fallback profile if offline or guest
-            val localProfile = getLocalFallbackProfile()
-            trySend(localProfile)
+            trySend(null)
             val authListener = FirebaseAuth.AuthStateListener { fAuth ->
                 val user = fAuth.currentUser
                 if (user == null) {
-                    trySend(getLocalFallbackProfile())
+                    trySend(null)
                 }
             }
             auth.addAuthStateListener(authListener)

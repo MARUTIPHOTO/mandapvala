@@ -35,9 +35,14 @@ service cloud.firestore {
     }
 
     // CustomerOrders collection - Real-time incoming customer orders and selections
-    match /CustomerOrders/{orderId} {
-      allow create: if true; // Public customer selection submission from web catalog or app
-      allow read, update, delete: if true; // Read real-time in app and manage order status
+    match /CustomerOrders/{document=**} {
+      allow read, write: if true;
+    }
+    match /customerOrders/{document=**} {
+      allow read, write: if true;
+    }
+    match /orders/{document=**} {
+      allow read, write: if true;
     }
 
     // Notifications collection (Customer selections push new notifications)

@@ -370,11 +370,6 @@ fun MandapApp(viewModel: MandapViewModel) {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
-                    },
-                    onSkip = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
                     }
                 )
             }
