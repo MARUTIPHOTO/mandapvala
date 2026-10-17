@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="66dp"
-        android:height="66dp"
-        android:drawable="@drawable/ic_mandap_logo"
-        android:gravity="center" />
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,20L20,50H30V88H78V50H88L54,20ZM54,34L72,50H66V76H42V50H36L54,34Z" />
+</vector>

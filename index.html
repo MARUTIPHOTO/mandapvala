@@ -1262,7 +1262,29 @@
             });
             payload.firestoreId = ref.id;
           } catch(err) {
-            console.warn("Firestore save fallback:", err);
+            console.warn("Firestore save fallback (CustomerOrders):", err);
+          }
+          try {
+            const docId = payload.firestoreId || ("order_" + Date.now());
+            await db.collection("customerOrders").doc(docId).set({
+              ...payload,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch(err) {
+            console.warn("Firestore save fallback (customerOrders):", err);
+          }
+          try {
+            await db.collection("notifications").add({
+              title: "નવો ગ્રાહક ઓર્ડર મળ્યો!",
+              message: `${name} (${phone}) એ ₹${totalAmount} ની ${totalQty} ડેકોરેશન આઇટમ્સ સિલેક્ટ કરી છે.`,
+              orderData: payload,
+              type: "ORDER",
+              timestamp: Date.now(),
+              read: false,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch(err) {
+            console.warn("Firestore save fallback (notifications):", err);
           }
         }
       } catch(e) {}

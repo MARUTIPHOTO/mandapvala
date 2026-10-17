@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Customer Selection Portal - Mandap Vala</title>
+  <meta name="description" content="Browse our latest decoration inventory. Pick your favorite Mandap, Stage, Flower, and Sofa designs.">
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --maroon-primary: #6B0F24;
+      --maroon-dark: #500818;
+      --maroon-light: #FCE7F3;
+      --maroon-text: #831843;
+      --amber-gold: #D97706;
+      --amber-bg: #FEF3C7;
+      --amber-dark: #78350F;
+      --amber-text: #92400E;
+      --bg-cream: #FDF8F6;
+      --card-white: #FFFFFF;
+      --border-gray: #E5E7EB;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+      --green-success: #10B981;
+      --green-dark: #059669;
+    }
+
+    body {
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      padding-bottom: 96px;
+      min-height: 100vh;
+    }
+
+    /* Top App Bar */
+    header {
+      background: var(--maroon-primary);
+      color: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(107, 15, 36, 0.25);
+    }
+
+    .top-app-bar {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-back {
+      background: transparent;
+      border: none;
+      color: #FFFFFF;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .btn-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .header-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .biz-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.25;
+      letter-spacing: 0.2px;
+    }
+
+    .portal-subtitle {
+      font-size: 12px;
+      color: #FDE68A;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 14px 16px;
+    }
+
+    /* Greeting Card */
+    .greeting-card {
+      background: var(--amber-bg);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      box-shadow: 0 2px 6px rgba(120, 53, 15, 0.05);
+    }
+
+    .greeting-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--amber-dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .greeting-desc {
+      font-size: 12.5px;
+      color: var(--amber-text);
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .contact-inputs-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-outline-box {
+      flex: 1;
+      position: relative;
+      background: #FFFDF8;
+      border: 1.5px solid #D97706;
+      border-radius: 10px;
+      padding: 6px 12px 6px 12px;
+    }
+
+    .input-outline-label {
+      position: absolute;
+      top: -9px;
+      left: 10px;
+      background: var(--amber-bg);
+      padding: 0 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--amber-dark);
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .input-outline-field {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1F2937;
+      padding-top: 4px;
+    }
+
+    /* Category Filter Pills */
+    .category-pills-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 14px 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .category-pills-row::-webkit-scrollbar { display: none; }
+
+    .cat-pill {
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+      background: #EDEAE6;
+      color: #4B5563;
+      transition: all 0.2s ease;
+    }
+    .cat-pill.active {
+      background: var(--maroon-primary);
+      color: #FFFFFF;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(107, 15, 36, 0.3);
+    }
+
+    /* Custom Item Banner Card */
+    .custom-item-card {
+      background: var(--amber-bg);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(120, 53, 15, 0.04);
+      transition: transform 0.15s ease;
+    }
+    .custom-item-card:active {
+      transform: scale(0.99);
+    }
+
+    .custom-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .custom-icon-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--amber-gold);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .custom-item-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #1F2937;
+      line-height: 1.3;
+    }
+
+    .custom-item-sub {
+      font-size: 11.5px;
+      color: #6B7280;
+      margin-top: 2px;
+    }
+
+    .btn-add-custom {
+      border: 1.5px solid var(--maroon-primary);
+      background: transparent;
+      color: var(--maroon-primary);
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-add-custom:active {
+      background: rgba(107, 15, 36, 0.08);
+    }
+
+    /* Items List */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item-card {
+      background: var(--card-white);
+      border-radius: 14px;
+      border: 1.5px solid #F3F4F6;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .item-card.is-selected {
+      background: #FDF2F4;
+      border-color: var(--maroon-primary);
+      box-shadow: 0 3px 10px rgba(107, 15, 36, 0.08);
+    }
+
+    /* Thumbnail Box */
+    .item-thumb-box {
+      width: 80px;
+      height: 80px;
+      min-width: 80px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: #F3F4F6;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .item-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .zoom-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.65);
+      color: #FFFFFF;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      backdrop-filter: blur(2px);
+      letter-spacing: 0.3px;
+    }
+
+    /* Item Details */
+    .item-details {
+      flex: 1;
+      margin-left: 12px;
+      min-width: 0;
+    }
+
+    .cat-badge {
+      display: inline-block;
+      background: var(--maroon-light);
+      color: var(--maroon-text);
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-bottom: 3px;
+      letter-spacing: 0.2px;
+    }
+
+    .item-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #1F2937;
+      line-height: 1.25;
+      margin-bottom: 2px;
+    }
+
+    .item-price {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--amber-gold);
+      margin-bottom: 2px;
+    }
+
+    .item-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 175px;
+    }
+
+    /* Item Action Buttons (Right) */
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-qty-manual {
+      border: 1px solid var(--maroon-primary);
+      background: transparent;
+      color: var(--maroon-primary);
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 8px;
+      height: 32px;
+      padding: 0 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-qty-manual:active {
+      background: rgba(107, 15, 36, 0.08);
+    }
+
+    .btn-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 700;
+      transition: transform 0.1s, background 0.15s;
+    }
+    .btn-circle:active {
+      transform: scale(0.92);
+    }
+
+    .btn-circle-plus {
+      background: var(--maroon-primary);
+      color: #FFFFFF;
+    }
+
+    .btn-circle-minus {
+      background: #E5E7EB;
+      color: #374151;
+    }
+
+    .selected-qty-chip {
+      background: var(--maroon-light);
+      border-radius: 8px;
+      padding: 4px 7px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      border: 1px solid rgba(107, 15, 36, 0.2);
+    }
+
+    .selected-qty-num {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--maroon-text);
+    }
+
+    .selected-qty-edit-icon {
+      font-size: 11px;
+      color: var(--maroon-primary);
+    }
+
+    /* Fixed Bottom Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #FFFFFF;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+      border-top: 1px solid var(--border-gray);
+      padding: 12px 16px;
+      z-index: 99;
+      display: none;
+    }
+
+    .bottom-bar-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .selection-summary {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-count {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1F2937;
+    }
+
+    .summary-total {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--maroon-primary);
+      margin-top: 2px;
+    }
+
+    .btn-submit-selection {
+      background: var(--green-success);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-submit-selection:active {
+      background: var(--green-dark);
+      transform: scale(0.98);
+    }
+
+    /* Modals & Dialogs */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transform: translateY(20px);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      font-size: 17px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .modal-subtitle {
+      font-size: 12.5px;
+      color: #6B7280;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #D1D5DB;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 12px;
+      background: #F9FAFB;
+    }
+    .modal-input:focus {
+      border-color: var(--maroon-primary);
+      background: #FFFFFF;
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-modal-cancel {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #D1D5DB;
+      background: #F3F4F6;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    .btn-modal-confirm {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: var(--maroon-primary);
+      color: #FFFFFF;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    /* Lightbox Zoom Modal */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1050;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    .lightbox-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .lightbox-img {
+      max-width: 95%;
+      max-height: 80vh;
+      border-radius: 14px;
+      object-fit: contain;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .lightbox-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-size: 32px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header>
+    <div class="top-app-bar">
+      <button class="btn-back" onclick="history.back()" aria-label="Go Back">
+        ←
+      </button>
+      <div class="header-text">
+        <h1 class="biz-title" id="headerBizTitle">Radhe Mandap & Event Decors</h1>
+        <span class="portal-subtitle">Customer Selection Portal</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Greeting Card with editable Name & Phone -->
+    <section class="greeting-card">
+      <h2 class="greeting-title" id="greetingHeader">Namaste, Customer ji! 🙏</h2>
+      <p class="greeting-desc" id="greetingInventoryCount">
+        Browse our latest decoration inventory (8 designs available). Tap any photo to zoom, and use + / - to pick your favorites.
+      </p>
+
+      <div class="contact-inputs-row">
+        <!-- Name Box -->
+        <div class="input-outline-box">
+          <label class="input-outline-label" for="custNameInput">તમારું નામ (Name)</label>
+          <input type="text" id="custNameInput" class="input-outline-field" value="Customer" placeholder="તમારું નામ">
+        </div>
+
+        <!-- Phone Box -->
+        <div class="input-outline-box">
+          <label class="input-outline-label" for="custPhoneInput">મોબાઇલ નંબર (Phone)</label>
+          <input type="tel" id="custPhoneInput" class="input-outline-field" placeholder="મોબાઇલ નંબર">
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Filter Horizontal Scroll -->
+    <nav class="category-pills-row" id="catPillsRow">
+      <button class="cat-pill active" onclick="selectCategory('All')">All</button>
+      <button class="cat-pill" onclick="selectCategory('Mandap')">Mandap</button>
+      <button class="cat-pill" onclick="selectCategory('Stage')">Stage</button>
+      <button class="cat-pill" onclick="selectCategory('Flower')">Flower</button>
+      <button class="cat-pill" onclick="selectCategory('Sofa')">Sofa</button>
+      <button class="cat-pill" onclick="selectCategory('Chair')">Chair</button>
+      <button class="cat-pill" onclick="selectCategory('Lighting')">Lighting</button>
+      <button class="cat-pill" onclick="selectCategory('Gate')">Gate</button>
+      <button class="cat-pill" onclick="selectCategory('Other')">Other</button>
+    </nav>
+
+    <!-- Add Custom Item / Requirement Card -->
+    <section class="custom-item-card" onclick="openCustomItemModal()">
+      <div class="custom-item-left">
+        <div class="custom-icon-circle">
+          ≡+
+        </div>
+        <div>
+          <div class="custom-item-title">+ ખાસ આઇટમ / ક્વોન્ટિટી જાતે ઉમેરો</div>
+          <div class="custom-item-sub">કેટલોગ સિવાયની વસ્તુ અથવા ચોક્કસ જથ્થો લખો</div>
+        </div>
+      </div>
+      <button class="btn-add-custom" onclick="event.stopPropagation(); openCustomItemModal()">
+        ઉમેરો
+      </button>
+    </section>
+
+    <!-- Items List -->
+    <section class="items-list" id="itemsListContainer">
+      <!-- Populated dynamically via renderItems() -->
+    </section>
+
+  </main>
+
+  <!-- Sticky Bottom Selection Bar -->
+  <footer class="bottom-bar" id="selectionBottomBar">
+    <div class="bottom-bar-inner">
+      <div class="selection-summary">
+        <div class="summary-count" id="bottomBarCount">0 Items Selected</div>
+        <div class="summary-total" id="bottomBarTotal">Est. Total: ₹0</div>
+      </div>
+      <button class="btn-submit-selection" onclick="openSubmitConfirmModal()">
+        <span>✓</span>
+        <span>Submit Selection</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Modal: Manual Quantity Input -->
+  <div class="modal-overlay" id="manualQtyModal">
+    <div class="modal-card">
+      <h3 class="modal-header">આઇટમનો જથ્થો (Quantity) લખો</h3>
+      <p class="modal-subtitle" id="manualQtyItemTitle">તમને જોઈતી ચોક્કસ સંખ્યા લખો:</p>
+      <input type="number" id="manualQtyInput" class="modal-input" min="1" max="9999" value="1">
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeManualQtyModal()">કેન્સલ</button>
+        <button class="btn-modal-confirm" onclick="confirmManualQty()">સેવ કરો</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Custom Requirement Item -->
+  <div class="modal-overlay" id="customItemModal">
+    <div class="modal-card">
+      <h3 class="modal-header">+ ખાસ આઇટમ ઉમેરો</h3>
+      <p class="modal-subtitle">કેટલોગમાં ન હોય તેવી નવી ડિઝાઇન કે જરૂરિયાત ઉમેરો:</p>
+      
+      <input type="text" id="customTitleInput" class="modal-input" placeholder="આઇટમનું નામ (Title) *">
+      
+      <select id="customCatInput" class="modal-input">
+        <option value="Mandap">Mandap</option>
+        <option value="Stage">Stage</option>
+        <option value="Flower">Flower</option>
+        <option value="Sofa">Sofa</option>
+        <option value="Chair">Chair</option>
+        <option value="Lighting">Lighting</option>
+        <option value="Gate">Gate</option>
+        <option value="Other" selected>Other</option>
+      </select>
+      
+      <input type="number" id="customPriceInput" class="modal-input" placeholder="અંદાજિત ભાડું ₹ (Price)">
+      <input type="number" id="customQtyInput" class="modal-input" placeholder="જથ્થો (Quantity)" value="1" min="1">
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeCustomItemModal()">કેન્સલ</button>
+        <button class="btn-modal-confirm" onclick="saveCustomItem()">ઉમેરો</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Submit Selection Confirmation & WhatsApp Share -->
+  <div class="modal-overlay" id="submitConfirmModal">
+    <div class="modal-card" style="text-align: center;">
+      <div style="font-size: 42px; margin-bottom: 8px;">🎉</div>
+      <h3 class="modal-header" style="color: #065F46;">સિલેક્શન સબમિટ કરો</h3>
+      <p class="modal-subtitle" style="margin-bottom: 14px;">
+        તમારી પસંદ કરેલી ડિઝાઇન Mandap Vala એપમાં Real-time પહોંચી જશે.
+      </p>
+
+      <div style="background: #F9FAFB; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span style="color: #6B7280;">ગ્રાહક:</span>
+          <strong id="confirmSummaryName" style="color: #1F2937;">Customer</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span style="color: #6B7280;">મોબાઇલ:</span>
+          <strong id="confirmSummaryPhone" style="color: #1F2937;">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #D1D5DB; padding-top: 6px; margin-top: 6px;">
+          <span style="font-weight: 700; color: #374151;">કુલ અંદાજિત:</span>
+          <strong id="confirmSummaryTotal" style="color: var(--maroon-primary); font-size: 15px;">₹0</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-submit-selection" style="width: 100%; justify-content: center; padding: 12px;" onclick="executeSelectionSubmission()">
+          ✓ કન્ફર્મ સબમિટ કરો
+        </button>
+        <button class="btn-modal-cancel" style="width: 100%;" onclick="closeSubmitConfirmModal()">
+          પાછા જાઓ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Success Submitted & WhatsApp Action -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-card" style="text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 8px;">✅</div>
+      <h3 class="modal-header" style="color: #065F46;">ઓર્ડર સફળતાપૂર્વક મોકલાઈ ગયો!</h3>
+      <p class="modal-subtitle" style="line-height: 1.5; margin-bottom: 18px;">
+        તમારું ડેકોરેશન સિલેક્શન Mandap Vala ના માલિક પાસે પહોંચી ગયું છે.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-submit-selection" style="width: 100%; justify-content: center; background: #25D366; padding: 12px;" onclick="sendWhatsAppConfirmation()">
+          <span>💬 WhatsApp પર પણ વિગત મોકલો</span>
+        </button>
+        <button class="btn-modal-cancel" style="width: 100%;" onclick="closeSuccessModal()">
+          પૂર્ણ (Done)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Image Zoom Lightbox -->
+  <div class="lightbox-overlay" id="lightboxModal" onclick="closeLightbox()">
+    <button class="lightbox-close-btn" onclick="closeLightbox()" aria-label="Close Lightbox">×</button>
+    <img id="lightboxImg" class="lightbox-img" src="images/hero.jpg" alt="Preview" onclick="event.stopPropagation()">
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase Config for Live Firestore Sync
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmfNujZ-RM9Uo4n58YFhnOrkcJvN_JPOg",
+      authDomain: "mandapvala-ead1b.firebaseapp.com",
+      projectId: "mandapvala-ead1b",
+      storageBucket: "mandapvala-ead1b.firebasestorage.app",
+      messagingSenderId: "280403303951",
+      appId: "1:280403303951:android:e73a8f9d9d3bbc1e0c8d7a"
+    };
+
+    let db = null;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+    } catch(e) {
+      console.warn("Firestore notice:", e);
+    }
+
+    // Default 8 Curated Designs exactly matching app database & screenshot
+    const items = [
+      {
+        id: "item_1",
+        title: "Heavy Brass Hanging Diyas & Bells",
+        category: "Other",
+        price: 4500,
+        desc: "Traditional vintage brass",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_2",
+        title: "Peacock Feather Royal Welcome Gate",
+        category: "Gate",
+        price: 18000,
+        desc: "Grand 16ft tall royal welcome",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_3",
+        title: "Grand Floral Pillar Reception Stage",
+        category: "Stage",
+        price: 35000,
+        desc: "30ft wide panoramic stage",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_4",
+        title: "Royal Rajwada Wedding Mandap",
+        category: "Mandap",
+        price: 45000,
+        desc: "Magnificent hand-carved golden pillars & dome canopy",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_5",
+        title: "Maharaja Velvet High-Back Sofa",
+        category: "Sofa",
+        price: 6000,
+        desc: "Gold-gilded royal throne seating for bride & groom",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_6",
+        title: "Golden Chiavari Chairs (Pack of 50)",
+        category: "Chair",
+        price: 5000,
+        desc: "Premium metallic gold banquet chairs with satin ties",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_7",
+        title: "Fresh Orchid & Marigold Entrance Arch",
+        category: "Flower",
+        price: 15000,
+        desc: "Exotic fresh floral arch with hydrangeas & orchids",
+        img: "images/hero.jpg"
+      },
+      {
+        id: "item_8",
+        title: "LED Par & Moving Head Lighting Rig",
+        category: "Lighting",
+        price: 12000,
+        desc: "Color-changing ambient LED pars & sharp spot movers",
+        img: "images/hero.jpg"
+      }
+    ];
+
+    let currentCategory = "All";
+    // itemId -> quantity
+    const selections = new Map();
+    let currentManualItem = null;
+    let lastOrderData = null;
+
+    // Parse URL Parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramName = urlParams.get('cname') || urlParams.get('name') || urlParams.get('customer') || '';
+    const paramPhone = urlParams.get('cphone') || '';
+    const paramBizPhone = urlParams.get('phone') || urlParams.get('bizphone') || urlParams.get('mobile') || '';
+    const paramBizName = urlParams.get('bname') || urlParams.get('bizname') || urlParams.get('business') || '';
+    const paramBizId = urlParams.get('biz') || 'biz_default';
+    const paramCustId = urlParams.get('cust') || '0';
+
+    // Initialize Header & Customer Inputs
+    const headerBizTitle = document.getElementById('headerBizTitle');
+    const greetingHeader = document.getElementById('greetingHeader');
+    const custNameInput = document.getElementById('custNameInput');
+    const custPhoneInput = document.getElementById('custPhoneInput');
+    const greetingCount = document.getElementById('greetingInventoryCount');
+
+    if (paramBizName) {
+      try {
+        headerBizTitle.textContent = decodeURIComponent(paramBizName);
+      } catch(e) {
+        headerBizTitle.textContent = paramBizName;
+      }
+    }
+
+    const decodedCustName = paramName ? (function() {
+      try { return decodeURIComponent(paramName.replace(/\+/g, ' ')); } catch(e) { return paramName; }
+    })() : 'Customer';
+
+    custNameInput.value = decodedCustName;
+    greetingHeader.textContent = `Namaste, ${decodedCustName} ji! 🙏`;
+
+    if (paramPhone) {
+      try {
+        custPhoneInput.value = decodeURIComponent(paramPhone.replace(/\+/g, ' '));
+      } catch(e) {
+        custPhoneInput.value = paramPhone;
+      }
+    }
+
+    // Live update greeting when user edits name input field
+    custNameInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim() || 'Customer';
+      greetingHeader.textContent = `Namaste, ${val} ji! 🙏`;
+    });
+
+    // Category Selector
+    function selectCategory(cat) {
+      currentCategory = cat;
+      const pills = document.querySelectorAll('.cat-pill');
+      pills.forEach(pill => {
+        pill.classList.toggle('active', pill.textContent.trim() === cat);
+      });
+      renderItems();
+    }
+
+    // Render Items
+    function renderItems() {
+      const container = document.getElementById('itemsListContainer');
+      const filtered = items.filter(it => currentCategory === "All" || it.category.toLowerCase() === currentCategory.toLowerCase());
+
+      greetingCount.textContent = `Browse our latest decoration inventory (${items.length} designs available). Tap any photo to zoom, and use + / - to pick your favorites.`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 16px; color: #6B7280; background: white; border-radius: 14px;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🔍</div>
+            <p style="font-weight: 700;">કોઈ ડિઝાઇન મળી નથી</p>
+            <p style="font-size: 12px; margin-top: 4px;">કૃપા કરીને અન્ય કેટેગરી પસંદ કરો.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(it => {
+        const qty = selections.get(it.id) || 0;
+        const isSelected = qty > 0;
+        const priceStr = it.price > 0 ? `₹${Number(it.price).toLocaleString('en-IN')} / event` : 'Price on Request';
+
+        return `
+          <div class="item-card ${isSelected ? 'is-selected' : ''}">
+            <!-- Photo Thumbnail with Click-to-Zoom -->
+            <div class="item-thumb-box" onclick="openLightbox('${it.img}')">
+              <img src="${it.img}" alt="${it.title}" class="item-thumb-img" onerror="this.onerror=null; this.src='images/hero.jpg';">
+              <span class="zoom-badge">🔍 Zoom</span>
+            </div>
+
+            <!-- Item Details -->
+            <div class="item-details" onclick="openLightbox('${it.img}')">
+              <span class="cat-badge">${it.category}</span>
+              <h3 class="item-title">${it.title}</h3>
+              <div class="item-price">${priceStr}</div>
+              <p class="item-desc">${it.desc}</p>
+            </div>
+
+            <!-- Action Buttons: + Qty and Stepper -->
+            <div class="item-actions">
+              ${qty === 0 ? `
+                <button class="btn-qty-manual" onclick="openManualQtyModal('${it.id}')">
+                  + Qty
+                </button>
+                <button class="btn-circle btn-circle-plus" onclick="updateQty('${it.id}', 1)" aria-label="Add 1">
+                  +
+                </button>
+              ` : `
+                <button class="btn-circle btn-circle-minus" onclick="updateQty('${it.id}', -1)" aria-label="Decrease">
+                  −
+                </button>
+                <div class="selected-qty-chip" onclick="openManualQtyModal('${it.id}')">
+                  <span class="selected-qty-num">${qty}</span>
+                  <span class="selected-qty-edit-icon">✏️</span>
+                </div>
+                <button class="btn-circle btn-circle-plus" onclick="updateQty('${it.id}', 1)" aria-label="Increase">
+                  +
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateBottomBar();
+    }
+
+    // Update Quantity
+    function updateQty(id, delta) {
+      const current = selections.get(id) || 0;
+      const next = current + delta;
+      if (next <= 0) {
+        selections.delete(id);
+      } else {
+        selections.set(id, next);
+      }
+      renderItems();
+    }
+
+    // Update Bottom Sticky Bar
+    function updateBottomBar() {
+      let totalQty = 0;
+      let totalAmount = 0;
+
+      selections.forEach((qty, id) => {
+        const item = items.find(it => String(it.id) === String(id));
+        if (item) {
+          totalQty += qty;
+          totalAmount += (Number(item.price) || 0) * qty;
+        }
+      });
+
+      const bar = document.getElementById('selectionBottomBar');
+      const countEl = document.getElementById('bottomBarCount');
+      const totalEl = document.getElementById('bottomBarTotal');
+
+      if (totalQty > 0) {
+        bar.style.display = 'block';
+        countEl.textContent = `${totalQty} Items Selected`;
+        totalEl.textContent = `Est. Total: ₹${totalAmount.toLocaleString('en-IN')}`;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    // Manual Qty Modal
+    function openManualQtyModal(itemId) {
+      const item = items.find(it => String(it.id) === String(itemId));
+      if (!item) return;
+      currentManualItem = item;
+      const currentQty = selections.get(item.id) || 1;
+      document.getElementById('manualQtyItemTitle').textContent = `${item.title}:`;
+      const input = document.getElementById('manualQtyInput');
+      input.value = currentQty;
+      document.getElementById('manualQtyModal').classList.add('active');
+      setTimeout(() => input.focus(), 150);
+    }
+
+    function closeManualQtyModal() {
+      document.getElementById('manualQtyModal').classList.remove('active');
+      currentManualItem = null;
+    }
+
+    function confirmManualQty() {
+      if (!currentManualItem) return;
+      const val = parseInt(document.getElementById('manualQtyInput').value, 10);
+      if (val > 0) {
+        selections.set(currentManualItem.id, val);
+      } else {
+        selections.delete(currentManualItem.id);
+      }
+      closeManualQtyModal();
+      renderItems();
+    }
+
+    // Custom Item Modal
+    function openCustomItemModal() {
+      document.getElementById('customTitleInput').value = '';
+      document.getElementById('customPriceInput').value = '';
+      document.getElementById('customQtyInput').value = '1';
+      document.getElementById('customItemModal').classList.add('active');
+    }
+
+    function closeCustomItemModal() {
+      document.getElementById('customItemModal').classList.remove('active');
+    }
+
+    function saveCustomItem() {
+      const title = (document.getElementById('customTitleInput').value || '').trim();
+      const cat = document.getElementById('customCatInput').value || 'Other';
+      const price = parseFloat(document.getElementById('customPriceInput').value) || 0;
+      const qty = parseInt(document.getElementById('customQtyInput').value, 10) || 1;
+
+      if (!title) {
+        alert('કૃપા કરીને આઇટમનું નામ લખો!');
+        document.getElementById('customTitleInput').focus();
+        return;
+      }
+
+      const newId = 'custom_' + Date.now();
+      const newItem = {
+        id: newId,
+        title: title,
+        category: cat,
+        price: price,
+        desc: `${cat} setup for celebration`,
+        img: 'images/hero.jpg'
+      };
+
+      items.unshift(newItem);
+      selections.set(newId, qty);
+      closeCustomItemModal();
+      renderItems();
+    }
+
+    // Lightbox Zoom
+    function openLightbox(imgSrc) {
+      const modal = document.getElementById('lightboxModal');
+      const img = document.getElementById('lightboxImg');
+      img.src = imgSrc || 'images/hero.jpg';
+      modal.classList.add('active');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.remove('active');
+    }
+
+    // Submit Selection Confirmation
+    function openSubmitConfirmModal() {
+      if (selections.size === 0) {
+        alert('કૃપા કરીને પહેલા ડિઝાઇન પસંદ કરો (+ પસંદ કરો)!');
+        return;
+      }
+
+      let totalQty = 0;
+      let totalAmount = 0;
+      selections.forEach((qty, id) => {
+        const item = items.find(it => String(it.id) === String(id));
+        if (item) {
+          totalQty += qty;
+          totalAmount += (Number(item.price) || 0) * qty;
+        }
+      });
+
+      const name = (custNameInput.value || '').trim() || 'Customer';
+      const phone = (custPhoneInput.value || '').trim() || '-';
+
+      document.getElementById('confirmSummaryName').textContent = name;
+      document.getElementById('confirmSummaryPhone').textContent = phone;
+      document.getElementById('confirmSummaryTotal').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
+
+      document.getElementById('submitConfirmModal').classList.add('active');
+    }
+
+    function closeSubmitConfirmModal() {
+      document.getElementById('submitConfirmModal').classList.remove('active');
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').classList.remove('active');
+    }
+
+    // Execute Selection Submission to Firestore
+    async function executeSelectionSubmission() {
+      const name = (custNameInput.value || '').trim() || 'Customer';
+      const phone = (custPhoneInput.value || '').trim();
+
+      let totalQty = 0;
+      let totalAmount = 0;
+      const orderItems = [];
+
+      selections.forEach((qty, id) => {
+        const item = items.find(it => String(it.id) === String(id));
+        if (item) {
+          totalQty += qty;
+          totalAmount += (Number(item.price) || 0) * qty;
+          orderItems.push({
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            price: item.price,
+            quantity: qty,
+            imageUrl: item.img
+          });
+        }
+      });
+
+      const payload = {
+        customerName: name,
+        customerMobile: phone,
+        customerId: paramCustId,
+        businessId: paramBizId,
+        totalAmount: totalAmount,
+        itemsCount: totalQty,
+        status: "NEW",
+        timestamp: Date.now(),
+        notes: "Submitted via Customer Selection Portal",
+        items: orderItems
+      };
+
+      try {
+        if (db) {
+          try {
+            const ref = await db.collection("CustomerOrders").add({
+              ...payload,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            payload.firestoreId = ref.id;
+          } catch(err) {
+            console.warn("Firestore save fallback (CustomerOrders):", err);
+          }
+          try {
+            const docId = payload.firestoreId || ("order_" + Date.now());
+            await db.collection("customerOrders").doc(docId).set({
+              ...payload,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch(err) {
+            console.warn("Firestore save fallback (customerOrders):", err);
+          }
+          try {
+            await db.collection("notifications").add({
+              title: "નવો ગ્રાહક ઓર્ડર મળ્યો!",
+              message: `${name} (${phone}) એ ₹${totalAmount} ની ${totalQty} ડેકોરેશન આઇટમ્સ સિલેક્ટ કરી છે.`,
+              orderData: payload,
+              type: "ORDER",
+              timestamp: Date.now(),
+              read: false,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch(err) {
+            console.warn("Firestore save fallback (notifications):", err);
+          }
+        }
+      } catch(e) {}
+
+      lastOrderData = payload;
+      closeSubmitConfirmModal();
+      document.getElementById('successModal').classList.add('active');
+
+      // Clear selections after submission
+      selections.clear();
+      renderItems();
+    }
+
+    // Send WhatsApp Confirmation
+    function sendWhatsAppConfirmation() {
+      if (!lastOrderData) return;
+      const d = lastOrderData;
+      const bizName = headerBizTitle.textContent || "Mandap Vala";
+
+      let msg = `🙏 *નમસ્તે ${bizName}!*\n`;
+      msg += `હું તમારા Customer Selection Portal પરથી નીચે મુજબની ડિઝાઇન પસંદ કરું છું:\n\n`;
+      msg += `👤 *ગ્રાહક:* ${d.customerName}\n`;
+      if (d.customerMobile) msg += `📞 *મોબાઇલ:* ${d.customerMobile}\n`;
+      msg += `\n*પસંદ કરેલી ડેકોરેશન આઇટમ્સ:*\n`;
+
+      d.items.forEach((it, idx) => {
+        const lineTotal = (Number(it.price) || 0) * it.quantity;
+        msg += `${idx + 1}. *${it.title}* (${it.category})\n   જથ્થો: ${it.quantity} નંગ × ₹${Number(it.price).toLocaleString('en-IN')} = ₹${lineTotal.toLocaleString('en-IN')}\n`;
+      });
+
+      msg += `\n💰 *કુલ અંદાજિત રકમ:* ₹${Number(d.totalAmount).toLocaleString('en-IN')}\n`;
+      msg += `\nકૃપા કરીને આ સિલેક્શન કન્ફર્મ કરશો. આભાર!`;
+
+      let targetPhone = paramBizPhone || '';
+      targetPhone = targetPhone.replace(/[^0-9]/g, '');
+      if (targetPhone.length === 10) targetPhone = '91' + targetPhone;
+
+      const enc = encodeURIComponent(msg);
+      const waUrl = targetPhone ? `https://wa.me/${targetPhone}?text=${enc}` : `https://wa.me/?text=${enc}`;
+      window.open(waUrl, '_blank');
+    }
+
+    // Fetch dynamic gallery items from Firestore if available
+    async function loadDynamicItems() {
+      if (!db) return;
+      try {
+        const snap = await db.collection("gallery_items").limit(50).get();
+        if (!snap.empty) {
+          const dynamicList = [];
+          const existingIds = new Set(items.map(it => String(it.id)));
+          snap.forEach(doc => {
+            const data = doc.data();
+            const id = data.id ? String(data.id) : doc.id;
+            if (!existingIds.has(id)) {
+              existingIds.add(id);
+              dynamicList.push({
+                id: id,
+                title: data.title || "ડેકોરેશન ડિઝાઇન",
+                category: data.category || "Mandap",
+                price: Number(data.price) || 0,
+                desc: data.description || "Mandap Vala setup for events",
+                img: data.imageUrl || "images/hero.jpg"
+              });
+            }
+          });
+          if (dynamicList.length > 0) {
+            items.push(...dynamicList);
+            renderItems();
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Initial Render
+    renderItems();
+    loadDynamicItems();
+  </script>
+</body>
+</html>
