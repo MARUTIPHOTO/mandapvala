@@ -45,6 +45,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // VendorGallery collection - Each vendor's personalized decoration catalog
+    match /VendorGallery/{document=**} {
+      allow read, write: if true;
+    }
+
     // Notifications collection (Customer selections push new notifications)
     match /notifications/{notificationId} {
       allow create: if true; // Customer selection portal can submit notification
