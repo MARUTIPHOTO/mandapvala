@@ -503,7 +503,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const rawPhone = (urlParams.get('phone') || '').trim();
       const cleanDigits = rawPhone.replace(/[^0-9]/g, '');
-      const vendorPhone = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+      const vendorPhone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
       const bizName = (urlParams.get('cname') || '').trim();
 
       if (bizName) {
@@ -515,14 +515,43 @@
         } catch(e) {}
       }
 
-      if (!db || !vendorPhone) return;
+      if (!db) return;
 
       try {
-        const snap = await db.collection("VendorGallery")
-          .where("vendorPhone", "==", vendorPhone)
-          .get();
-
-        if (!snap.empty) {
+        let snap = null;
+        if (vendorPhone10) {
+          snap = await db.collection("VendorGallery").where("vendorPhone", "==", vendorPhone10).get();
+          if (snap.empty && cleanDigits !== vendorPhone10) {
+            snap = await db.collection("VendorGallery").where("vendorPhone", "==", cleanDigits).get();
+          }
+        }
+        if (!snap || snap.empty) {
+          const allSnap = await db.collection("VendorGallery").get();
+          if (!allSnap.empty) {
+            const matchedDocs = [];
+            allSnap.forEach(doc => {
+              const d = doc.data();
+              const p = String(d.vendorPhone || '').replace(/[^0-9]/g, '');
+              if (vendorPhone10 && (p.includes(vendorPhone10) || vendorPhone10.includes(p))) {
+                matchedDocs.push(d);
+              }
+            });
+            if (matchedDocs.length > 0) {
+              const customItems = matchedDocs.map(data => ({
+                id: data.id || "item_" + Math.random(),
+                title: data.title || 'Decoration Item',
+                category: data.category || 'Mandap',
+                price: Number(data.price) || 0,
+                availableQuantity: Number(data.availableQuantity) || 1,
+                img: data.imageUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400'
+              }));
+              items.length = 0;
+              items.push(...customItems);
+              renderItems();
+              return;
+            }
+          }
+        } else {
           const customItems = [];
           snap.forEach(doc => {
             const data = doc.data();
