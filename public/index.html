@@ -515,49 +515,73 @@
         } catch(e) {}
       }
 
-      if (!db) return;
+      if (!db) {
+        console.warn("Firestore not initialized.");
+        return;
+      }
 
       try {
-        let snap = null;
+        console.log("Loading gallery for vendorPhone10:", vendorPhone10);
+        let docs = [];
+
+        // 1. Direct query with 10 digits
         if (vendorPhone10) {
-          snap = await db.collection("VendorGallery").where("vendorPhone", "==", vendorPhone10).get();
-          if (snap.empty && cleanDigits !== vendorPhone10) {
-            snap = await db.collection("VendorGallery").where("vendorPhone", "==", cleanDigits).get();
+          try {
+            const snap = await db.collection("VendorGallery").where("vendorPhone", "==", vendorPhone10).get();
+            if (!snap.empty) {
+              snap.forEach(doc => docs.push(doc.data()));
+            }
+          } catch(e) {
+            console.warn("Direct query 1 error:", e);
           }
-        }
-        if (!snap || snap.empty) {
-          const allSnap = await db.collection("VendorGallery").get();
-          if (!allSnap.empty) {
-            const matchedDocs = [];
-            allSnap.forEach(doc => {
-              const d = doc.data();
-              const p = String(d.vendorPhone || '').replace(/[^0-9]/g, '');
-              if (vendorPhone10 && (p.includes(vendorPhone10) || vendorPhone10.includes(p))) {
-                matchedDocs.push(d);
+
+          // 2. Query with raw/clean digits if different
+          if (docs.length === 0 && cleanDigits && cleanDigits !== vendorPhone10) {
+            try {
+              const snap = await db.collection("VendorGallery").where("vendorPhone", "==", cleanDigits).get();
+              if (!snap.empty) {
+                snap.forEach(doc => docs.push(doc.data()));
               }
-            });
-            if (matchedDocs.length > 0) {
-              const customItems = matchedDocs.map(data => ({
-                id: data.id || "item_" + Math.random(),
-                title: data.title || 'Decoration Item',
-                category: data.category || 'Mandap',
-                price: Number(data.price) || 0,
-                availableQuantity: Number(data.availableQuantity) || 1,
-                img: data.imageUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400'
-              }));
-              items.length = 0;
-              items.push(...customItems);
-              renderItems();
-              return;
+            } catch(e) {
+              console.warn("Direct query 2 error:", e);
             }
           }
-        } else {
+        }
+
+        // 3. Fallback: retrieve all documents and match by phone digits, document ID prefix, or biz name
+        if (docs.length === 0) {
+          try {
+            const allSnap = await db.collection("VendorGallery").get();
+            if (!allSnap.empty) {
+              allSnap.forEach(doc => {
+                const data = doc.data();
+                const docId = doc.id;
+                const p = String(data.vendorPhone || '').replace(/[^0-9]/g, '');
+                const p10 = p.length >= 10 ? p.slice(-10) : p;
+
+                let match = false;
+                if (vendorPhone10) {
+                  if (p10 === vendorPhone10 || docId.startsWith(vendorPhone10) || docId.includes(vendorPhone10)) {
+                    match = true;
+                  }
+                }
+                if (match) {
+                  docs.push(data);
+                }
+              });
+            }
+          } catch(e) {
+            console.warn("All collection query error:", e);
+          }
+        }
+
+        console.log("Found vendor gallery items:", docs.length);
+        if (docs.length > 0) {
           const customItems = [];
-          snap.forEach(doc => {
-            const data = doc.data();
+          docs.forEach(data => {
             if (data.isAvailable !== false) {
               customItems.push({
-                id: data.id || doc.id,
+                id: data.id || ("item_" + Math.random().toString(36).substr(2, 9)),
                 title: data.title || 'Decoration Item',
                 category: data.category || 'Mandap',
                 price: Number(data.price) || 0,
