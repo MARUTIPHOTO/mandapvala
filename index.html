@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mandap Vala - Customer Decoration Selection Portal</title>
+  <title>Mandap Vala - ડેકોરેશન પસંદગી પોર્ટલ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,13 +25,13 @@
       font-family: 'Hind Vadodara', 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text-main);
-      padding-bottom: 90px;
+      padding-bottom: 96px;
       -webkit-font-smoothing: antialiased;
     }
     .header {
       background: linear-gradient(135deg, #E65100, #BF360C);
       color: white;
-      padding: 20px 16px 16px;
+      padding: 18px 16px 16px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -43,9 +43,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
-    .header-title { font-size: 20px; font-weight: 700; }
-    .header-subtitle { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+    .header-title { font-size: 20px; font-weight: 700; line-height: 1.25; }
+    .header-subtitle { font-size: 13px; opacity: 0.92; margin-top: 2px; }
+    .vendor-badge {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
     .customer-info-box {
       max-width: 600px;
       margin: 14px auto 0;
@@ -87,6 +98,7 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s;
+      font-family: inherit;
     }
     .cat-btn.active {
       background: var(--primary);
@@ -108,7 +120,7 @@
       display: flex;
       gap: 12px;
       box-shadow: var(--shadow);
-      border: 1px solid transparent;
+      border: 1.5px solid transparent;
       transition: all 0.2s;
     }
     .item-card.is-selected {
@@ -116,15 +128,16 @@
       background: #FFF8E1;
     }
     .item-img {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
+      width: 92px;
+      height: 92px;
+      border-radius: 10px;
       object-fit: cover;
-      background: #EEEEEE;
+      background: #F1F1F1;
       flex-shrink: 0;
+      cursor: pointer;
     }
-    .item-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .item-title { font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .item-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+    .item-title { font-size: 15px; font-weight: 600; line-height: 1.3; word-break: break-word; }
     .item-category { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
     .item-price { font-size: 16px; font-weight: 700; color: var(--secondary); margin-top: 4px; }
     .item-actions {
@@ -134,13 +147,13 @@
       margin-top: 6px;
     }
     .btn-circle {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: white;
       color: var(--text-main);
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -155,8 +168,40 @@
     .qty-display {
       font-size: 14px;
       font-weight: 700;
-      min-width: 28px;
+      min-width: 24px;
       text-align: center;
+    }
+    .state-card {
+      background: white;
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      color: var(--text-muted);
+    }
+    .state-card h3 { color: var(--text-main); font-size: 17px; margin-bottom: 8px; }
+    .state-card p { font-size: 14px; line-height: 1.5; }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #FFE0B2;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-retry {
+      margin-top: 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
     }
     .bottom-bar {
       position: fixed;
@@ -178,6 +223,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
     .total-title { font-size: 12px; color: var(--text-muted); }
     .total-amount { font-size: 20px; font-weight: 800; color: var(--secondary); }
@@ -185,7 +231,7 @@
       background: linear-gradient(135deg, #2E7D32, #1B5E20);
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 12px 22px;
       border-radius: 24px;
       font-size: 15px;
       font-weight: 700;
@@ -194,11 +240,13 @@
       align-items: center;
       gap: 6px;
       box-shadow: 0 4px 8px rgba(46,125,50,0.3);
+      font-family: inherit;
     }
+    .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       display: none;
       align-items: center;
       justify-content: center;
@@ -230,6 +278,7 @@
       justify-content: center;
       gap: 8px;
       margin-top: 12px;
+      font-family: inherit;
     }
     .btn-close {
       background: #EEEEEE;
@@ -242,6 +291,14 @@
       cursor: pointer;
       width: 100%;
       margin-top: 8px;
+      font-family: inherit;
+    }
+    .preview-img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #111;
     }
   </style>
 </head>
@@ -251,8 +308,9 @@
     <div class="header-content">
       <div>
         <h1 class="header-title" id="bizTitle">Mandap Vala</h1>
-        <p class="header-subtitle">ડેકોરેશન આઇટમ સિલેક્શન પોર્ટલ</p>
+        <p class="header-subtitle">ડેકોરેશન ગેલેરી અને આઇટમ સિલેક્શન પોર્ટલ</p>
       </div>
+      <div class="vendor-badge" id="vendorPhoneBadge" style="display:none;"></div>
     </div>
   </header>
 
@@ -264,14 +322,7 @@
     </div>
   </div>
 
-  <div class="categories" id="catBar">
-    <button class="cat-btn active" onclick="setCategory('All')">બધું (All)</button>
-    <button class="cat-btn" onclick="setCategory('Mandap')">મંડપ (Mandap)</button>
-    <button class="cat-btn" onclick="setCategory('Stage')">સ્ટેજ (Stage)</button>
-    <button class="cat-btn" onclick="setCategory('Gate')">એન્ટ્રી ગેટ (Gate)</button>
-    <button class="cat-btn" onclick="setCategory('Lighting')">લાઇટિંગ (Lighting)</button>
-    <button class="cat-btn" onclick="setCategory('Other')">અન્ય (Other)</button>
-  </div>
+  <div class="categories" id="catBar"></div>
 
   <main class="catalog-list" id="catalogList"></main>
 
@@ -281,9 +332,18 @@
         <div class="total-title"><span id="selCount">0</span> આઇટમ્સ પસંદ કરી</div>
         <div class="total-amount" id="totalAmountDisplay">₹0</div>
       </div>
-      <button class="btn-submit" onclick="submitSelection()">
+      <button class="btn-submit" id="submitBtn" onclick="submitSelection()">
         <span>ઓર્ડર સબમિટ કરો</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Image Preview Modal -->
+  <div class="modal-overlay" id="previewModal" onclick="closePreviewModal()">
+    <div class="modal-card" style="padding:14px;" onclick="event.stopPropagation()">
+      <img id="previewImg" class="preview-img" src="" alt="Preview">
+      <div id="previewCaption" style="margin-top:10px; font-weight:700; font-size:15px; text-align:center;"></div>
+      <button class="btn-close" onclick="closePreviewModal()">બંધ કરો (Close)</button>
     </div>
   </div>
 
@@ -297,7 +357,7 @@
         <div id="modalAmount" style="font-size: 32px; font-weight: 800; color: #1B5E20; margin-top: 4px;">₹0</div>
         <div id="modalCustomer" style="font-size: 14px; color: #388E3C; margin-top: 2px;"></div>
       </div>
-      <p style="font-size: 13px; color: #616161; line-height: 1.4;">
+      <p id="modalOwnerNote" style="font-size: 13px; color: #616161; line-height: 1.4;">
         તમારું ડેકોરેશન સિલેક્શન Mandap Vala ના માલિક પાસે પહોંચી ગયું છે.
       </p>
       <button class="btn-wa" onclick="sendWhatsApp()">
@@ -312,7 +372,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase Config for project mandapvala-ead1b
     const firebaseConfig = {
       apiKey: "AIzaSyDmfNujZ-RM9Uo4n58YFhnOrkcJvN_JPOg",
       authDomain: "mandapvala-ead1b.firebaseapp.com",
@@ -321,17 +380,18 @@
       messagingSenderId: "280403303951",
       appId: "1:280403303951:android:e73a8f9d9d3bbc1e0c8d7a"
     };
+
     let db = null;
     try {
       if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
       }
-    } catch(e) {
+    } catch (e) {
       console.warn("Firebase init notice:", e);
     }
 
-    const items = [
+    const DEFAULT_DEMO_ITEMS = [
       { id: 1, title: "Royal Rajwada Wedding Mandap", category: "Mandap", price: 45000, img: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400" },
       { id: 2, title: "Grand Floral Reception Stage", category: "Stage", price: 35000, img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400" },
       { id: 3, title: "Peacock Royal Welcome Gate", category: "Gate", price: 18000, img: "https://images.unsplash.com/photo-1545232979-fbf68fe9b1af?w=400" },
@@ -341,31 +401,170 @@
       { id: 7, title: "Traditional Haldi Mehendi Setup", category: "Mandap", price: 20000, img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400" }
     ];
 
+    const CATEGORY_LABELS = {
+      "All": "બધું (All)",
+      "Mandap": "મંડપ (Mandap)",
+      "Stage": "સ્ટેજ (Stage)",
+      "Sofa": "સોફા (Sofa)",
+      "Chair": "ખુરશી (Chair)",
+      "Gate": "એન્ટ્રી ગેટ (Gate)",
+      "Flower": "ફ્લાવર (Flower)",
+      "Lighting": "લાઇટિંગ (Lighting)",
+      "Other": "અન્ય (Other)"
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawVendorPhone = (urlParams.get('phone') || '').trim();
+    const cleanDigits = rawVendorPhone.replace(/[^0-9]/g, '');
+    const vendorPhone10 = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
+    const hasVendorQuery = Boolean(vendorPhone10 || cleanDigits);
+
+    let bizDisplayName = (urlParams.get('bname') || '').trim() || 'Mandap Vala';
+    let items = [];
     let currentCategory = 'All';
+    let isLoading = hasVendorQuery;
+    let loadErrorMsg = '';
     const selections = new Map();
     let lastOrderData = null;
 
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function makeSvgPlaceholder(category) {
+      const cat = String(category || 'Mandap').slice(0, 18);
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFE0B2"/><stop offset="100%" stop-color="#FFCC80"/></linearGradient></defs><rect width="200" height="200" rx="16" fill="url(#g)"/><text x="100" y="96" text-anchor="middle" font-family="sans-serif" font-size="36" fill="#E65100">🎪</text><text x="100" y="132" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#BF360C">${cat.replace(/[<>&"]/g, '')}</text></svg>`;
+      return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+    function getSafeImageSrc(rawUrl, category) {
+      const u = String(rawUrl || '').trim();
+      if (u.startsWith('data:image/') || u.startsWith('https://') || u.startsWith('http://') || u.startsWith('images/')) {
+        return u;
+      }
+      return makeSvgPlaceholder(category);
+    }
+
+    function updateVendorBranding(name) {
+      if (name && String(name).trim()) {
+        bizDisplayName = String(name).trim();
+      }
+      const titleEl = document.getElementById('bizTitle');
+      if (titleEl) titleEl.textContent = bizDisplayName;
+      document.title = `${bizDisplayName} - ડેકોરેશન ગેલેરી`;
+      const ownerNote = document.getElementById('modalOwnerNote');
+      if (ownerNote) {
+        ownerNote.textContent = `તમારું ડેકોરેશન સિલેક્શન ${bizDisplayName} પાસે પહોંચી ગયું છે.`;
+      }
+    }
+
+    function prefillCustomerFields() {
+      const cname = (urlParams.get('cname') || '').trim();
+      const cphone = (urlParams.get('cphone') || '').trim();
+      if (cname) {
+        try {
+          document.getElementById('custName').value = decodeURIComponent(cname);
+        } catch (e) {
+          document.getElementById('custName').value = cname;
+        }
+      }
+      if (cphone) {
+        try {
+          document.getElementById('custPhone').value = decodeURIComponent(cphone);
+        } catch (e) {
+          document.getElementById('custPhone').value = cphone;
+        }
+      }
+      if (vendorPhone10) {
+        const badge = document.getElementById('vendorPhoneBadge');
+        if (badge) {
+          badge.textContent = `📞 ${vendorPhone10}`;
+          badge.style.display = 'inline-block';
+        }
+      }
+    }
+
+    function renderCategories() {
+      const catBar = document.getElementById('catBar');
+      if (!catBar) return;
+      if (items.length === 0) {
+        catBar.innerHTML = '';
+        return;
+      }
+      const uniqueCats = ['All'];
+      items.forEach(it => {
+        const c = String(it.category || 'Mandap').trim() || 'Mandap';
+        if (!uniqueCats.includes(c)) uniqueCats.push(c);
+      });
+      if (!uniqueCats.includes(currentCategory)) {
+        currentCategory = 'All';
+      }
+      catBar.innerHTML = uniqueCats.map(cat => {
+        const label = CATEGORY_LABELS[cat] || cat;
+        const active = currentCategory === cat ? 'active' : '';
+        return `<button class="cat-btn ${active}" data-cat="${escapeHtml(cat)}" onclick="setCategory(this.getAttribute('data-cat'))">${escapeHtml(label)}</button>`;
+      }).join('');
+    }
+
     function renderItems() {
+      renderCategories();
       const list = document.getElementById('catalogList');
+      if (isLoading) {
+        list.innerHTML = `
+          <div class="state-card">
+            <div class="spinner"></div>
+            <h3>ડેકોરેશન ગેલેરી લોડ થઈ રહી છે...</h3>
+            <p>કૃપા કરીને થોડી ક્ષણ રાહ જુઓ.</p>
+          </div>
+        `;
+        updateBottomBar();
+        return;
+      }
+
+      if (hasVendorQuery && items.length === 0) {
+        const msg = loadErrorMsg || `આ નંબર (${escapeHtml(vendorPhone10 || cleanDigits)}) માટે ગેલેરી આઇટમ્સ હજુ અપલોડ થઈ નથી.`;
+        list.innerHTML = `
+          <div class="state-card">
+            <div style="font-size:40px; margin-bottom:8px;">🖼️</div>
+            <h3>ગેલેરી ઉપલબ્ધ નથી</h3>
+            <p>${msg}</p>
+            <p style="margin-top:8px; font-size:13px;">કૃપા કરીને એપમાં જઈને <b>ગેલેરી</b> ખોલો અથવા <b>લિંક શેર કરો</b> પર ક્લિક કરો, જેથી બધી આઇટમ્સ અહીં દેખાય.</p>
+            <button class="btn-retry" onclick="loadVendorGallery()">ફરીથી લોડ કરો (Retry)</button>
+          </div>
+        `;
+        updateBottomBar();
+        return;
+      }
+
       const filtered = items.filter(it => currentCategory === 'All' || it.category === currentCategory);
       list.innerHTML = filtered.map(it => {
-        const qty = selections.get(it.id) || 0;
+        const key = String(it.id);
+        const qty = selections.get(key) || 0;
+        const imgSrc = getSafeImageSrc(it.img, it.category);
+        const fallbackSrc = makeSvgPlaceholder(it.category);
         return `
           <div class="item-card ${qty > 0 ? 'is-selected' : ''}">
-            <img src="${it.img}" alt="${it.title}" class="item-img" onerror="this.src='https://placehold.co/100?text=Mandap'">
+            <img src="${imgSrc}" alt="${escapeHtml(it.title)}" class="item-img"
+                 onclick="openPreviewModal('${escapeHtml(key)}')"
+                 onerror="this.onerror=null;this.src='${fallbackSrc}'">
             <div class="item-info">
               <div>
-                <h3 class="item-title">${it.title}</h3>
-                <div class="item-category">${it.category}</div>
+                <h3 class="item-title">${escapeHtml(it.title)}</h3>
+                <div class="item-category">${escapeHtml(it.category)}</div>
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                <div class="item-price">₹${it.price.toLocaleString('en-IN')}</div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:8px;">
+                <div class="item-price">₹${Number(it.price || 0).toLocaleString('en-IN')}</div>
                 <div class="item-actions">
                   ${qty > 0 ? `
-                    <button class="btn-circle" onclick="updateQty(${it.id}, -1)">−</button>
+                    <button class="btn-circle" onclick="updateQty('${escapeHtml(key)}', -1)">−</button>
                     <span class="qty-display">${qty}</span>
                   ` : ''}
-                  <button class="btn-circle plus" onclick="updateQty(${it.id}, 1)">+</button>
+                  <button class="btn-circle plus" onclick="updateQty('${escapeHtml(key)}', 1)">+</button>
                 </div>
               </div>
             </div>
@@ -375,30 +574,40 @@
       updateBottomBar();
     }
 
+    function openPreviewModal(idKey) {
+      const item = items.find(it => String(it.id) === String(idKey));
+      if (!item) return;
+      document.getElementById('previewImg').src = getSafeImageSrc(item.img, item.category);
+      document.getElementById('previewCaption').textContent = `${item.title} — ₹${Number(item.price || 0).toLocaleString('en-IN')}`;
+      document.getElementById('previewModal').classList.add('active');
+    }
+
+    function closePreviewModal() {
+      document.getElementById('previewModal').classList.remove('active');
+    }
+
     function updateQty(id, delta) {
-      const current = selections.get(id) || 0;
+      const key = String(id);
+      const current = selections.get(key) || 0;
       const next = current + delta;
-      if (next <= 0) selections.delete(id);
-      else selections.set(id, next);
+      if (next <= 0) selections.delete(key);
+      else selections.set(key, next);
       renderItems();
     }
 
     function setCategory(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(cat) || (cat === 'All' && btn.textContent.includes('બધું')));
-      });
+      currentCategory = cat || 'All';
       renderItems();
     }
 
     function updateBottomBar() {
       let count = 0;
       let total = 0;
-      selections.forEach((qty, id) => {
-        const item = items.find(it => it.id === id);
+      selections.forEach((qty, key) => {
+        const item = items.find(it => String(it.id) === String(key));
         if (item) {
           count += qty;
-          total += item.price * qty;
+          total += Number(item.price || 0) * qty;
         }
       });
       document.getElementById('selCount').textContent = count;
@@ -410,69 +619,82 @@
         alert('કૃપા કરીને પહેલા ડિઝાઇન પસંદ કરો (+ દબાવો)!');
         return;
       }
-      const name = (document.getElementById('custName').value || '').trim() || 'Valued Customer';
-      const phone = (document.getElementById('custPhone').value || '').trim() || '';
 
-      let totalQty = 0;
-      let totalAmount = 0;
-      const orderItems = [];
-
-      selections.forEach((qty, id) => {
-        const item = items.find(it => it.id === id);
-        if (item) {
-          const itemTotal = item.price * qty;
-          totalQty += qty;
-          totalAmount += itemTotal;
-          orderItems.push({
-            id: Number(item.id),
-            title: String(item.title),
-            category: String(item.category),
-            price: Number(item.price),
-            quantity: Number(qty),
-            lineTotal: Number(itemTotal),
-            imageUrl: String(item.img)
-          });
-        }
-      });
-
-      const todayStr = new Date().toISOString().split('T')[0];
-      const payload = {
-        customerName: name,
-        customerMobile: phone,
-        customerId: "0",
-        businessId: "biz_default",
-        eventDate: todayStr,
-        totalAmount: Number(totalAmount),
-        itemsCount: Number(totalQty),
-        status: "NEW",
-        timestamp: Date.now(),
-        notes: "Customer Selection Portal Order - ₹" + Number(totalAmount).toLocaleString('en-IN'),
-        items: orderItems
-      };
+      const btn = document.getElementById('submitBtn');
+      if (btn) btn.disabled = true;
 
       try {
+        const name = (document.getElementById('custName').value || '').trim() || 'Valued Customer';
+        const phone = (document.getElementById('custPhone').value || '').trim() || '';
+
+        let totalQty = 0;
+        let totalAmount = 0;
+        const orderItems = [];
+
+        selections.forEach((qty, key) => {
+          const item = items.find(it => String(it.id) === String(key));
+          if (item) {
+            const itemTotal = Number(item.price || 0) * qty;
+            totalQty += qty;
+            totalAmount += itemTotal;
+            const safeOrderImg = (item.img && item.img.length <= 65000 && !item.img.startsWith('data:image/svg')) ? String(item.img) : '';
+            orderItems.push({
+              id: Number(item.id) || 0,
+              title: String(item.title),
+              category: String(item.category),
+              price: Number(item.price || 0),
+              quantity: Number(qty),
+              lineTotal: Number(itemTotal),
+              imageUrl: safeOrderImg
+            });
+          }
+        });
+
+        const vendorBiz = (urlParams.get('biz') || '').trim();
+        const vendorId = vendorBiz || (vendorPhone10 ? 'biz_' + vendorPhone10 : 'biz_default');
+        const todayStr = new Date().toISOString().split('T')[0];
+        const vendorTag = vendorPhone10 ? `[Vendor:${vendorPhone10}] ` : (vendorBiz ? `[Vendor:${vendorBiz}] ` : '');
+
+        const payload = {
+          customerName: name,
+          customerMobile: phone,
+          customerId: urlParams.get('cust') || "0",
+          businessId: vendorId,
+          vendorPhone: vendorPhone10,
+          eventDate: todayStr,
+          totalAmount: Number(totalAmount),
+          itemsCount: Number(totalQty),
+          status: "NEW",
+          timestamp: Date.now(),
+          notes: `${vendorTag}Customer Selection Portal Order - ₹${Number(totalAmount).toLocaleString('en-IN')}`,
+          items: orderItems
+        };
+
         if (db) {
           await db.collection("CustomerOrders").add({
             ...payload,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
-      } catch(err) {
-        console.warn("Firestore save notice:", err);
-      }
 
-      lastOrderData = payload;
-      document.getElementById('modalAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
-      document.getElementById('modalCustomer').textContent = `ગ્રાહક: ${name} ${phone ? '(' + phone + ')' : ''}`;
-      document.getElementById('successModal').classList.add('active');
-      selections.clear();
-      renderItems();
+        lastOrderData = payload;
+        document.getElementById('modalAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
+        document.getElementById('modalCustomer').textContent = `ગ્રાહક: ${name} ${phone ? '(' + phone + ')' : ''}`;
+        document.getElementById('successModal').classList.add('active');
+        selections.clear();
+        renderItems();
+      } catch (err) {
+        console.warn("Firestore save notice:", err);
+        alert("ઓર્ડર સબમિટ કરવામાં સમસ્યા આવી, કૃપા કરીને WhatsApp દ્વારા મોકલો અથવા ફરી પ્રયાસ કરો.");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function sendWhatsApp() {
       if (!lastOrderData) return;
       const d = lastOrderData;
-      let msg = `🙏 *નમસ્તે Mandap Vala!*\nહું તમારા Customer Selection Portal પરથી ઓર્ડર મોકલું છું:\n\n`;
+      let msg = `🙏 *નમસ્તે ${bizDisplayName}!*\nહું તમારા Customer Selection Portal પરથી ઓર્ડર મોકલું છું:\n\n`;
       msg += `👤 *ગ્રાહક:* ${d.customerName}\n`;
       if (d.customerMobile) msg += `📞 *મોબાઇલ:* ${d.customerMobile}\n`;
       msg += `\n*પસંદ કરેલી ડેકોરેશન આઇટમ્સ:*\n`;
@@ -481,14 +703,137 @@
       });
       msg += `\n💰 *કુલ અંદાજિત રકમ:* ₹${d.totalAmount.toLocaleString('en-IN')}\n`;
       msg += `\nકૃપા કરીને આ સિલેક્શન કન્ફર્મ કરશો. આભાર!`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+
+      const targetPhone = vendorPhone10.length === 10 ? `91${vendorPhone10}` : cleanDigits;
+      const waUrl = targetPhone ? `https://wa.me/${targetPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
     }
 
     function closeSuccessModal() {
       document.getElementById('successModal').classList.remove('active');
     }
 
-    renderItems();
+    function extractDigits10(val) {
+      const d = String(val || '').replace(/[^0-9]/g, '');
+      return d.length >= 10 ? d.slice(-10) : d;
+    }
+
+    function scoreDocImage(url) {
+      const u = String(url || '').trim();
+      if (u.startsWith('data:image/')) return 3;
+      if (u.startsWith('https://') || u.startsWith('http://')) return 2;
+      return 0;
+    }
+
+    async function loadVendorGallery() {
+      if (!hasVendorQuery) {
+        items = [...DEFAULT_DEMO_ITEMS];
+        isLoading = false;
+        renderItems();
+        return;
+      }
+
+      isLoading = true;
+      loadErrorMsg = '';
+      renderItems();
+
+      if (!db) {
+        isLoading = false;
+        loadErrorMsg = 'Firebase કનેક્ટ થઈ શક્યું નથી. કૃપા કરીને ઈન્ટરનેટ તપાસો.';
+        renderItems();
+        return;
+      }
+
+      try {
+        const matchedDocsMap = new Map();
+
+        const collectSnap = (snap) => {
+          if (!snap || snap.empty) return;
+          snap.forEach(doc => {
+            const data = doc.data() || {};
+            const docKey = String(data.id != null ? data.id : doc.id);
+            const existing = matchedDocsMap.get(docKey);
+            if (!existing || scoreDocImage(data.imageUrl) >= scoreDocImage(existing.imageUrl)) {
+              matchedDocsMap.set(docKey, data);
+            }
+          });
+        };
+
+        if (vendorPhone10) {
+          try {
+            collectSnap(await db.collection("VendorGallery").where("vendorPhone", "==", vendorPhone10).get());
+          } catch (e) { console.warn("Query 1 error:", e); }
+        }
+
+        if (cleanDigits && cleanDigits !== vendorPhone10) {
+          try {
+            collectSnap(await db.collection("VendorGallery").where("vendorPhone", "==", cleanDigits).get());
+          } catch (e) { console.warn("Query 2 error:", e); }
+        }
+
+        if (matchedDocsMap.size === 0) {
+          try {
+            const allSnap = await db.collection("VendorGallery").get();
+            if (allSnap && !allSnap.empty) {
+              allSnap.forEach(doc => {
+                const data = doc.data() || {};
+                const p10 = extractDigits10(data.vendorPhone);
+                const w10 = extractDigits10(data.vendorWhatsapp);
+                const docIdDigits = extractDigits10(doc.id.split('_')[0]);
+                const matches = (vendorPhone10 && (p10 === vendorPhone10 || w10 === vendorPhone10 || docIdDigits === vendorPhone10 || doc.id.startsWith(vendorPhone10 + '_')))
+                  || (cleanDigits && (String(data.vendorPhone || '').includes(cleanDigits) || doc.id.startsWith(cleanDigits + '_')));
+                if (matches) {
+                  const docKey = String(data.id != null ? data.id : doc.id);
+                  const existing = matchedDocsMap.get(docKey);
+                  if (!existing || scoreDocImage(data.imageUrl) >= scoreDocImage(existing.imageUrl)) {
+                    matchedDocsMap.set(docKey, data);
+                  }
+                }
+              });
+            }
+          } catch (e) {
+            console.warn("Fallback scan error:", e);
+          }
+        }
+
+        const customItems = [];
+        let foundVendorName = '';
+
+        matchedDocsMap.forEach((data, key) => {
+          if (!foundVendorName && data.vendorName && String(data.vendorName).trim()) {
+            foundVendorName = String(data.vendorName).trim();
+          }
+          if (data.isAvailable !== false) {
+            customItems.push({
+              id: data.id != null ? data.id : key,
+              title: data.title || 'Decoration Item',
+              category: data.category || 'Mandap',
+              price: Number(data.price) || 0,
+              availableQuantity: Number(data.availableQuantity) || 1,
+              img: data.imageUrl || ''
+            });
+          }
+        });
+
+        customItems.sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+
+        if (foundVendorName) {
+          updateVendorBranding(foundVendorName);
+        }
+
+        items = customItems;
+      } catch (err) {
+        console.warn("Could not load vendor catalog:", err);
+        loadErrorMsg = 'ગેલેરી લોડ કરવામાં એરર આવી. કૃપા કરીને ફરી પ્રયાસ કરો.';
+      } finally {
+        isLoading = false;
+        renderItems();
+      }
+    }
+
+    prefillCustomerFields();
+    updateVendorBranding(bizDisplayName);
+    loadVendorGallery();
   </script>
 </body>
 </html>
